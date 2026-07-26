@@ -1,0 +1,144 @@
+aid: rightmove
+url: https://raw.githubusercontent.com/api-evangelist/rightmove/refs/heads/main/apis.yml
+name: Rightmove
+kind: company
+description: Rightmove is the United Kingdom's largest residential property portal,
+  operated by Rightmove Group Limited (Milton Keynes) and listed on the London Stock
+  Exchange as Rightmove plc. It aggregates for-sale, to-let, new-homes, commercial
+  and overseas listings supplied by member estate agents, letting agents and new-homes
+  developers, and monetises the audience by charging those agents for advertising rather
+  than by licensing data. The UK has no MLS, so Rightmove sits at the demand end of
+  the value chain and its inbound feeds — not any cooperative database — are the machine-readable
+  surface. Its API posture is publish-in, not read-out - the documented APIs let an agent's
+  CRM or feed provider push listings into Rightmove, and there is no public API for
+  reading listings, sold prices or valuations. A public Apigee developer portal at
+  api-docs.rightmove.co.uk ("Rightmove APIs - Early adopters") anonymously serves a
+  real OpenAPI 3.0.1 contract for the Commercial Listings API, and www.rightmove.co.uk/adf.html
+  publishes the Real Time Data Feed specification, but working credentials for every
+  environment are issued case by case by the Rightmove Data Feed Team and use is governed
+  by a binding End User Licence Agreement. No RESO Web API or Data Dictionary certification,
+  OData `$metadata` document or Universal Property Identifier appears anywhere in
+  Rightmove's surface - RESO is a North American, NAR-driven standard with no UK
+  counterpart, and Rightmove uses its own proprietary ADF/RTDF schema instead.
+image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/icons/groq.png
+tags:
+- Real Estate
+- United Kingdom
+- Property Listings
+- Property Portal
+- PropTech
+- Rentals
+- Commercial Real Estate
+- Data Feed
+created: '2026-07-26'
+modified: '2026-07-26'
+specificationVersion: '0.19'
+apis:
+- aid: rightmove:rightmove-commercial-listings-api
+  name: Rightmove Commercial Listings API
+  description: >-
+    The Commercial Listings API allows commercial agents and feed providers to upload,
+    update, retrieve and remove commercial property listings for display on the Rightmove
+    website. It models a property as either a BUILDING or a SPACE, carries media
+    (photos, floor plans, EPCs, EPC graphs, brochures, virtual tours) as publicly
+    reachable URLs, and processes changes asynchronously. Residential listings are
+    explicitly out of scope and must continue to go through the Real Time Data Feed
+    API. Authentication is OAuth2 client credentials with credentials issued by the
+    Rightmove Data Feed Team; errors are returned as RFC 7807-style ProblemDetail
+    bodies. The published OpenAPI declares two paths — GET/PUT/DELETE on
+    /v2/property/commercial/{reference} and GET on /v2/property/commercial/branch —
+    plus a staging server at https://api-services.adftest.rightmove.com.
+  humanURL: https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview
+  baseURL: https://api-services.rightmove.co.uk
+  tags:
+  - Commercial Real Estate
+  - Property Listings
+  - Real Estate
+  - United Kingdom
+  properties:
+  - type: OpenAPI
+    url: openapi/rightmove-commercial-listings-openapi.yml
+  - type: Documentation
+    url: https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview
+  - type: APIReference
+    url: https://api-docs.rightmove.co.uk/apis
+  - type: Authentication
+    url: https://api-docs.rightmove.co.uk/authentication
+  - type: GettingStarted
+    url: https://api-docs.rightmove.co.uk/get-started
+  - type: SignUp
+    url: https://api-docs.rightmove.co.uk/accounts/create
+  - type: TermsOfService
+    url: https://api-docs.rightmove.co.uk/terms
+  - type: Support
+    url: mailto:adfsupport@rightmove.co.uk
+- aid: rightmove:rightmove-real-time-data-feed-api
+  name: Rightmove Real Time Data Feed API
+  description: >-
+    The Real Time Data Feed (RTDF) is Rightmove's incremental HTTPS/JSON interface for
+    UK sales, lettings and overseas sales listings, used by estate agency CRM and feed
+    provider software rather than by end developers. The publicly downloadable
+    specification (v1.4.1, last updated November 2023) documents thirteen calls on
+    https://adfapi.rightmove.co.uk/v1/property/, including SendPropertyDetails,
+    OverseasSendPropertyDetails, RemoveProperty, GetBranchPropertyList,
+    AddPremiumListing, AddFeaturedProperty, RemoveFeaturedProperty,
+    GetBranchPerformance, GetPropertyPerformance, GetBrandEmails, GetBranchEmails,
+    GetPropertyEmails and ErrorCodes. Calls carry a Rightmove-issued Network_ID and
+    Branch_ID and an Agent_Ref that keys create-versus-update. Access is mutual-TLS -
+    Rightmove issues an X.509 certificate and private key in a keystore by email with
+    the password sent by SMS - so neither the endpoints nor the referenced JSON
+    Schemas are reachable anonymously (probed 403).
+  humanURL: https://www.rightmove.co.uk/adf.html
+  baseURL: https://adfapi.rightmove.co.uk/v1
+  tags:
+  - Property Listings
+  - Rentals
+  - Real Estate
+  - United Kingdom
+  - Data Feed
+  properties:
+  - type: Documentation
+    url: https://www.rightmove.co.uk/adf.html
+  - type: Specification
+    url: https://media.rightmove.co.uk/ps/pdf/guides/adf/Rightmove_Real_Time_Datafeed_Specification.pdf
+    name: Rightmove Real Time Data Feed API Web Services Specification v1.4.1
+  - type: License
+    url: https://media.rightmove.co.uk/ps/pdf/guides/adf/RTDF_EULA.pdf
+    name: RTDF End User Licence Agreement
+  - type: Onboarding
+    url: https://media.rightmove.co.uk/ps/pdf/guides/adf/Provider_Contact_Form.pdf
+    name: ADF Provider Contact Form
+  - type: Support
+    url: mailto:adfsupport@rightmove.co.uk
+common:
+- type: Website
+  url: https://www.rightmove.co.uk/
+- type: DeveloperPortal
+  url: https://api-docs.rightmove.co.uk/
+  name: Rightmove APIs - Early adopters
+- type: Documentation
+  url: https://www.rightmove.co.uk/adf.html
+  name: Rightmove Automated Datafeed (ADF) Specifications
+- type: Specification
+  url: https://media.rightmove.co.uk/ps/pdf/guides/ADF_V4n_specification.pdf
+  name: Rightmove Automated Data Feed v4.0n (New Homes bulk XML file feed, not an HTTP API)
+- type: License
+  url: https://media.rightmove.co.uk/ps/pdf/guides/adf/RTDF_EULA.pdf
+  name: RTDF End User Licence Agreement
+- type: TermsOfService
+  url: https://www.rightmove.co.uk/c/terms-of-use/
+- type: PrivacyPolicy
+  url: https://www.rightmove.co.uk/c/privacy-policy/
+- type: GitHubOrganization
+  url: https://github.com/rightmove
+- type: LinkedIn
+  url: https://www.linkedin.com/company/rightmove
+- type: InvestorRelations
+  url: https://plc.rightmove.co.uk/
+- type: Blog
+  url: https://www.rightmove.co.uk/news/
+- type: Support
+  url: mailto:adfsupport@rightmove.co.uk
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

@@ -1,0 +1,2004 @@
+openapi: 3.0.1
+tags:
+  - name: Property
+    description: Create, Updated, Remove and Retrieve properties
+info:
+  title: Commercial Listings API
+  description: |
+    ## Overview
+    
+    The Commercial Listings API allows you to upload, update, retrieve, and remove Commercial property listings for display on the Rightmove website. 
+    
+    It is designed for use by Commercial Agents and Feed Providers integrating with the Rightmove platform. 
+    
+    ### Purpose
+    
+    This API enables the management of commercial listings only. It supports: 
+  
+    - Uploading new listings
+    
+    - Updating existing listings (based on the reference field)
+    
+    - Retrieving and removing listings
+    
+    ⚠ Residential listings are not supported by this API. These must continue to be uploaded via the Rightmove Real Time Data Feed API.
+
+    ---
+    
+    ### Property Scope
+  
+    - This API supports commercial property listings only.
+    
+    - Residential properties should still be uploaded using the **Rightmove Real Time Data Feed APIs**.
+    
+    - If your branch uploads both commercial and residential properties, you must use the appropriate API per property type.
+    
+    ---
+    
+    ### Environments 
+  
+    #### Api-test environment
+    
+    - Used for development and testing.
+    
+    - Requires test credentials issued by the Rightmove Data Feed Team (email: adfsupport@rightmove.co.uk).
+    
+    - Listings submitted here will not appear on the live website.
+    
+    #### Production environment
+    
+    - Used for live listings visible to consumers on the Rightmove site.
+    
+    - Requires separate production credentials, also provided by the Rightmove Data Feed Team.
+    
+    - To begin uploading for a new branch, please contact the Data Feed Team who will support you through setup and testing.
+  
+    ---
+    
+    ### Authentication
+    
+    All endpoints require authentication using OAuth2 client credentials. 
+  
+    Credentials must be supplied by the Rightmove Data Feed Team.
+    
+    Visit the [authentication page](/authentication) for implementation details.
+
+    --- 
+
+    ### Versioning
+    
+    This API follows semantic versioning (major.minor.patch): 
+
+    - **Major:** Breaking changes (client updates required)
+
+    - **Minor:** Backwards-compatible enhancements
+
+    - **Patch:** Bug fixes or documentation updates (no structural changes)
+
+    Please ensure your integration is resilient to additional fields being returned.
+  
+    --- 
+    
+    ### Property-upload visibility guidelines 
+    
+    #### Why this matters 
+    
+    Rightmove treats every feed item as something you want marketed. Uploading “draft” or inactive stock generates confusing enquiries for Consumers and Partners. 
+    
+    Follow the rules below to keep your live inventory clean and compliant.
+  
+    | **Rule** | **What to do** | **What happens if you break it** |
+    |------|------------|-------------------------------|
+    | **1. Upload only properties you want on Rightmove** | Send through live listings only — i.e. anything you are happy to display publicly and receive leads for. | Off-market stock clutters the feed and will be rejected in future platform updates. |
+    | **2. Use an approved status** | Set the status field to one of the six values below (case-sensitive): AVAILABLE, SOLD_STC, SOLD_STCM, RESERVED, LET_AGREED, UNDER_OFFER  | Any other value (e.g. SOLD_BY_US) triggers an automatic published =false flag, hiding the listing from search. |
+    | **3. Keep status & marketing intent aligned** | If a property’s internal CRM status implies it is no longer marketable (e.g. "completed" or "withdrawn"), either stop sending it or switch the feed status to one of the permitted inactive values above. | Mismatched statuses are auto-corrected to invisible. |
+    
+    **Tip:** You can always re-activate a hidden listing by resending it with a compliant status and published=true. 
+    
+    Additional scenario: Managing visibility for buildings and their spaces
+  
+    If a building is unpublished — either when it is first created or later updated with published=false — all associated spaces within that building will also automatically be set with published=false.
+  
+    To re-publish the building, you can send it again with published=true. However, each space within the building will also need to be explicitly updated with published=true in order to be visible on the platform. This ensures that only intended spaces are marketed alongside the property.
+  
+    #### Removing a Property
+    
+    If a property should be removed from Rightmove, you can permanently remove it via the DELETE endpoint.
+  
+    - Use the DELETE /v2/property/commercial/{reference} endpoint to remove the listing.
+    
+    - When deleting, you must also provide a removalReason to indicate why the property is being removed.
+    
+    - Once deleted, the property will no longer appear on Rightmove and will not be returned in future API queries. Note that this action will also remove any associated listings from Rightmove.
+      
+    ---
+    
+    ### Media Handling 
+    
+    The API supports various types of media for your commercial property listings, including photos, floor plans, EPCs (Energy Performance Certificates), EPC graphs, brochures, and virtual tours. 
+    
+    - Structure: Media is submitted within the building.media or building.spaces[].media objects. Each media type (e.g., photos, floorPlans) is an array of MediaAsset objects.
+    
+    - MediaAsset Object: Each MediaAsset requires:
+    
+      - url: A publicly accessible URL to the media file.
+    
+        - Important for Brochures: URLs for brochures must end with a .pdf extension.
+    
+      - description (optional): A brief description of the media asset (max 200 characters).
+    
+      - order (optional): An integer to define the display order of assets within its type.
+    
+    - Schema: Refer to the Media and MediaAsset schemas in the API Specification
+
+    ETag Recommendation: To optimize media downloads and reduce unnecessary data transfer, the API performs an ETag (Entity Tag) check via a HEAD request before downloading media resources. 
+    It is highly recommended that your media asset URLs support and return an ETag HTTP header. This allows our system to fetch the asset only if it has changed since the last retrieval.
+  
+    ---
+    
+    ### Reference Field
+    
+    We use the reference field to determine whether a property is new or existing: 
+    
+    - If a listing is uploaded with a new reference, it is treated as a new listing.
+    
+    - To update an existing listing, submit the same reference value.
+  
+    ---
+    
+    ### Model Change
+    
+    As of v1.2.3, the API supports the ability to change a Property's model from BUILDING to SPACE. This is useful if you initially uploaded a property as a standalone building but later decide to market individual spaces within that building.
+    Please ensure the following:
+    
+    - Space Listings: When changing to the SPACE model, you must remove the existing model BUILDING object in the spaces array and create new space objects for each individual space you want to market within the building.
+    
+    - Reference Consistency: The reference supplied at the path for the Building must remain the same when changing to Space. This ensures the existing property is updated to match the new model.
+    
+    - Space Reference Uniqueness: Each space within the building must have a unique reference that is different from the building's reference (the one provided at the path). This prevents conflicts and ensures each space can be individually identified.
+    
+    ⚠ It is worth noting that whilst a BUILDING can be converted to a SPACE, the reverse is not currently supported. At present, if you need to change from SPACE back to BUILDING, you must first delete the existing property and then re-upload it with the BUILDING model.
+    
+    ---
+    
+    ### Asynchronous Processing 
+    
+    Our system is asynchronous, meaning changes (including uploads and removals) may take some time to reflect on the live website. 
+  
+    ---
+    
+    ### Unsupported Features 
+    
+    The following are not currently supported by this API: 
+  
+    - Uploading or removing products (e.g. featured property and premium listing)
+  
+    - Uploading residential property listings
+    
+    - Sending error reports via email
+
+    - Setting property availability beyond core commercial statuses
+  
+    --- 
+  
+    ### Error Handling
+    
+    The API uses standard HTTP status codes to indicate the success or failure of an API request. 
+
+    - 2xx Success Codes: Indicate that the request was successfully received, understood, and accepted (e.g., 200 OK, 201 Created).
+    
+    - 4xx Client Error Codes: Indicate an error that seems to have been caused by the client (e.g., 400 Bad Request for malformed syntax or validation errors, 401 Unauthorized for missing/invalid credentials, 403 Forbidden for insufficient permissions, 404 Not Found if a resource doesn't exist, 429 Too Many Requests for rate limiting).
+    
+    - 5xx Server Error Codes: Indicate an error on our side (e.g., 500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable). If you consistently receive these errors, please contact the Rightmove Data Feed Team.
+  
+    #### Problem Details:
+    
+    For 4xx and 5xx error responses, the API will generally return a body in the JSON ProblemDetail format. This provides more specific information about the error. 
+
+    Schema: Refer to the ProblemDetail schema in the API Specification
+                 
+    Key Fields: 
+
+    - type: A URI identifier for the problem type.
+    
+    - title: A short, human-readable summary of the problem type.
+    
+    - status: The HTTP status code.
+    
+    - detail: A human-readable explanation specific to this occurrence of the problem.
+    
+    - instance: A URI reference that identifies the specific occurrence of the problem.
+    
+    - properties: An optional object containing additional details. This may include:
+    
+      - traceId: A unique identifier for the request, useful for support.
+    
+      - timestamp: The time the error occurred.
+    
+      - validationError (for 400 Bad Request): Contains specifics about validation failures, often including the field and message.
+  
+    ---
+    
+    ### Rate Limiting
+    
+    To ensure fair usage and stability of the API for all clients, requests are subject to rate limiting. 
+
+    - Response Code: If you exceed the number of allowed requests within a given time window, the API will respond with an HTTP 429 Too Many Requests status code.
+    
+    - Quota Reset: The quota resets every 60 seconds. The specific number of allowed requests (the quota value) may vary per environment (e.g., staging vs. production) and per endpoint.
+    
+    - Retry Strategy: If you receive a 429 response, your application should wait before retrying the request. Implementing an exponential backoff strategy for retries is recommended.
+    
+    - Headers: While not explicitly detailed in the OpenAPI for this endpoint, APIs often include headers in 429 responses like Retry-After (indicating how long to wait before retrying) or headers detailing current rate limit status (e.g., X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset). Check the response headers for any such information.
+  
+    Please design your integration to handle 429 responses gracefully. If you anticipate needing higher rate limits, please contact the Rightmove Data Feed Team.
+  
+    ---
+                 
+    ### Support 
+
+    For access credentials or onboarding support, please contact the Rightmove Data Feed Team: adfsupport@rightmove.co.uk
+    
+    ---
+    ### Changelog
+    #### v2.1.6 -- 2026-06-23
+    ##### Changed
+    * Added subtype BUSINESS_PARK as a valid value for Offices property classification
+    * Added subtype SHOWROOM as a valid value for Retail property classification
+    * Added subtype TAKEAWAY as a valid value for Leisure And Hospitality property classification
+    * Added subtype WORKSHOP as a valid value for Industrial and Logistics property classification
+
+    #### v2.1.5 -- 2026-06-22
+    ##### Changed
+    * `keyFeatures` is now optional at building level.
+
+    #### v2.1.4 -- 2026-05-22
+    ##### Changed
+    * Renamed schemas to clearly distinguish building-level and space-level objects:
+      * `Pricing` renamed to `SpacePricing`
+      * `Sizing` renamed to `SpaceSizing`
+      * `PriceDisplayQualifier` renamed to `SpacePriceDisplayQualifier`
+    * Fixed the `CommercialPropertyWithSpaces` PUT schema so that building-level pricing references `BuildingPricing` (previously incorrectly referenced the space-level `Pricing`).
+    * Clarified pricing and sizing descriptions to make the validation rules explicit:
+      * `BuildingPricing` is mandatory at the building level.
+      * `SpacePricing` is optional at the space level.
+      * `BuildingSizing` is optional and now correctly refers to the building rather than the space.
+      * `SpaceSizing` is mandatory for every space, with `size` and `unit` required.
+
+    #### v2.1.3 -- 2026-01-07
+    ##### Changed
+    * An additional field, `auction`, has been added to the building object to indicate whether the property is an auction property. This applies only to SALES listings. The field is optional and defaults to `false` if not provided.
+    
+    #### v2.1.2 -- 2025-12-03
+    ##### Changed
+    * INDUSTRIAL_DEVELOPMENT is removed from LAND_AND_DEVELOPMENT property classification and any existing properties with this subtype will be mapped to COMMERCIAL_DEVELOPMENT.
+    * AEROSPACE subtype has been removed from OTHER property classification
+    * FARM subtype has been moved to LAND_AND_DEVELOPMENT property classification from OTHER property classification
+    * Added WOODLAND subtype as a valid value for LAND_AND_DEVELOPMENT property classification
+    * Added subtypes DENTAL_CARE, PHARMACY and CARE_HOME_FACILITY as valid values for OTHER property classification
+    
+    #### v2.1.1 -- 2025-11-12
+    ##### Changed
+    * Added subtypes CAMPSITE_HOLIDAY_VILLAGE, COMM_GUEST_HOUSE as valid values for Leisure And Hospitality property classification
+    * Added subtypes POST_OFFICE, CONVENIENCE_STORE as valid values for Retail property classification    
+    
+    #### v2.1.0 -- 2025-11-07
+    ##### Changed
+    Version 2.1.0 of the Commercial Listings API is now available. 
+    We’ve restructured the API to make it simpler and easier to integrate with. 
+
+      * All building-related fields should now be provided in the Building object. 
+      * All space-related fields should now be provided in the Space object.
+    
+    To upload a building, use this PUT schema: #/components/schemas/CommercialPropertyBuildingOnly
+    
+    To upload a building with spaces, use this PUT schema: #/components/schemas/CommercialPropertyWithSpaces
+    
+    ##### What’s Changed 
+                 
+    * The Space object is now optional — include this object only if you want to display a floor or unit within a building. 
+    * Additional fields have been added to the Building object:
+      * status 
+      * availableDate
+      * businessRates
+      * serviceCharge
+      * isRentAllInclusive
+      * letType
+      * letContractLength
+      * condition
+    * We will be deprecating and removing the following fields — please do not send these fields going forward: 
+      * constructionType in the Building object 
+      * model in the Space object 
+    * PriceDisplayQualifier enum - the following values are supported: 
+      * Space level only :
+        * NONE("~")
+        * PRICE_ON_APPLICATION("POA")
+      * Property (building) level only:
+        * NONE("~")
+        * PRICE_ON_APPLICATION("POA")
+        * GUIDE_PRICE("Guide Price ~")
+        * OFFERS_IN_EXCESS_OF("Offers in Excess of ~")
+        * OFFERS_IN_REGION_OF("Offers in Region of ~")
+        * FROM("From ~")
+                 
+    ##### Recommendation: 
+    We recommend that all new customers adopting the updated API structure begin including the new fields immediately. 
+    
+    #### v2.0.3 -- 2025-11-20
+    ##### Changed
+    * Updated Pricing description.
+    
+    #### v2.0.2 -- 2025-10-20
+    ##### Changed
+    * Added ability to change a Property's model from BUILDING to SPACE. See the "Model Change" section above for details.
+    * Added the ability to provide pricing information at the building level.
+    
+    #### v2.0.1 -- 2025-10-10
+    ##### changed
+    * Added showStreetView field to the streetView object
+    
+    #### v2.0.0 -- 2025-10-09
+    ##### Breaking change
+    * Removed COMMERCIAL and STUDENT values from LetType field
+    
+    #### v1.2.3 -- 2025-10-08
+    ##### Changed
+    * Updated documentation for GET endpoint
+    
+    #### v1.2.2 -- 2025-08-06
+    ##### Changed
+    * Enforced validation against reference for SPACE and BUILDING model. When model is SPACE, than the reference must be unique for each space and different from the one used in the request url.
+      When model is BUILDING, then the reference must be equal to the one used in the request url.
+    
+    #### v1.2.1 -- 2025-07-03
+    ##### Changed
+    * Adding WAREHOUSE and SELF_STORAGE as valid values for the subType field for Industrial and Logistics property classification
+    
+    #### v1.2.0 -- 2025-06-10
+    ##### Changed
+    * Added optional minSize and maxSize fields to the sizing object on building
+    
+    #### v1.1.6 -- 2025-06-09
+    ##### Changed
+    * Allowing maximum of 50 spaces per building
+    
+    #### v1.1.5 -- 2025-06-04
+    ##### Changed
+    * Added remove Property section to the documentation
+    
+    #### v1.1.4 -- 2025-05-29
+    ##### Changed
+    * Added more information around the visibility guidelines for commercial properties
+    
+    #### v1.1.3 -- 2025-05-27
+    ##### Changed
+    * Removed the following statuses from the documentation - SOLD_BY_US, SOLD_BY_ANOTHER_AGENT, WITHDRAWN_FROM_MARKET, LOST_INSTRUCTION, REMOVED and LET_BY_US
+    
+    #### v1.1.2 -- 2025-05-22
+    ##### Changed
+    * Fixed style issues in the documentation
+  
+    #### v1.1.1 -- 2025-05-21
+    ##### Changed
+    * Updated introduction and authentication content
+    
+    #### v1.1.0 -- 2025-05-08
+    ##### Changed
+    * Release of version 1.1.0
+    * Retrieve properties by Branch endpoint added
+    
+    #### v1.0.0 -- 2025-04-16
+    ##### Changed
+    * Release of version 1.0.0
+
+    #### v0.6.1 -- 2025-04-03
+    ##### Changed
+    * Changed measurement type field to be optional 
+    
+    #### v0.6.0 -- 2025-04-03
+    ##### Changed
+    * Removed WEEKLY, DAILY, QUARTERLY from RentFrequency
+    
+    #### v0.5.1 -- 2025-04-02
+    ##### Changed
+    * Added SHOP as a valid value for the subType field for Retail property classification
+    * Added CAFE as a valid value for the subType field for Leisure And Hospitality property classification
+    * Added LIFE_SCIENCES_LABS as a valid value for the subType field for Other property classification
+    
+    #### v0.5.0 -- 2025-04-01
+    ##### Changed
+    * Added TRADE_COUNTER as a valid value for the subType field
+    * Split IPMS3 in to IPMS3_1 and IPMS3_2 in measurementType field
+    * Updated buildingIdentifier to be a maximum of 100 characters rather than 50
+    
+    #### v0.4.0 -- 2025-03-13
+    ##### Changed
+    * EPC rating field changed to accept values up to 500 to accommodate ESG credentials
+    
+    #### v0.3.0 -- 2025-03-10
+    ##### Changed
+    * Improved validation error messages to be more descriptive
+    * The following fields moved from mandatory to optional:
+      * Use Class
+      * Amenities
+      * Available Date
+    * EPC rating field changed to accept values up to 120 to accommodate ESG credentials
+
+    #### v0.2.0 -- 2025-03-03
+    ##### Changed
+    * businessRate renamed to businessRates in order to match industry terminology
+    * The following fields moved from mandatory to optional:
+      * EPC rating
+      * Minimum/Maximum capacity
+      * Business Rates
+    * Added optional order field to space object to allow for ordering of spaces in a building.
+    
+    #### v0.1.0 -- 2025-02-21
+    ##### Changed
+    * Fix spelling of METERS to METRES with the Clear Height Unit field
+    * Fix spelling of yardDepthMeters to yardDepthMetres within the industrial and logistics classification
+    
+    ##### Fixed
+    * Documentation Update - Add missing response codes to the delete request
+    * Documentation Update - Fix spelling mistake with rent obligation allowed values
+    * Documentation Update - Ensure examples are clearer
+    * Documentation Update - Ensure specification values are generated using enumerated data when using testing tools
+    * Documentation Update - Update terms of service and licence links
+    
+    --- 
+    ### Upload Commercial Property
+    Submit details of new commercial properties, including offices, retail
+    units, warehouses, leisure and land, exclusively within the UK market.
+
+    ---
+    ### Update Commercial Property
+    Update details of commercial properties, including offices, retail
+    units, warehouses, leisure and land, exclusively within the UK market.
+
+    ---
+    ### Remove Commercial Property
+    Removes details of commercial properties, taking the reason for the removal.
+
+    ---
+    ### Retrieve Property Details
+    Retrieve information about your commercial properties for reconciliation and data referencing. 
+
+  version: 1.0.0
+  termsOfService: https://api-docs.rightmove.co.uk/terms
+  contact:
+    email: adfsupport@rightmove.co.uk
+    name: Rightmove Data Feed Team
+  license:
+    name: Please refer to the End User License Agreement
+    url: https://api-docs.rightmove.co.uk/terms
+servers:
+  - url: https://api-services.adftest.rightmove.com
+    description: Staging
+  - url: https://api-services.rightmove.co.uk
+    description: Production
+paths:
+  /v2/property/commercial/{reference}:
+    get:
+      tags:
+        - Property
+      security:
+        - OAuth2: []
+      summary: Gets a Commercial Property (UK Only)
+      description: Gets a Commercial Property (UK Only)
+      operationId: getCommercialPropertyDetails
+      parameters:
+        - name: reference
+          in: path
+          description: The reference identifier of the property to retrieve.
+          required: true
+          schema:
+            type: string
+        - name: Rightmove-Agent-ID
+          in: header
+          description: The Agent ID associated with the property.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "503":
+          description: This response will be presented when an unexpected internal
+            error has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "200":
+          description: Property is found and the response object will include all
+            the property details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropertyAction"
+        "502":
+          description: "This response will be presented when an unexpected error has\
+            \ occurred, this is most likely to do with a client error. The user will\
+            \ be prompted to try again."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "400":
+          description: This response will be presented when a validation error has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "401":
+          description: This response will be presented when the attempt to call is
+            unauthorised.
+          content:
+            application/json: { }
+        "403":
+          description: This response will be presented when the attempt to call is
+            forbidden.
+          content:
+            application/json: { }
+        "429":
+          description: This response will be presented when your quota has been exceeded.
+            The quota resets every 60 seconds and the value varies per environment
+          content:
+            application/json: { }
+    put:
+      security:
+        - OAuth2: []
+      tags:
+        - Property
+      summary: Sends Commercial Properties (UK Only)
+      description: Upload or update commercial properties
+      operationId: sendCommercialPropertyDetails
+      parameters:
+        - name: reference
+          in: path
+          description: The reference of the property. This must be the same provided at space level, when the property defines a building with no spaces.
+          required: true
+          example: 'Property_Reference_123'
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/CommercialPropertyWithSpaces"
+                - $ref: "#/components/schemas/CommercialPropertyBuildingOnly"
+        required: true
+      responses:
+        "200":
+          description: Successfully updated a property and the response contains metadata
+            about the update action.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropertySaveAction"
+        "201":
+          description: Successfully created a property and the response contains metadata
+            about the create action.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropertySaveAction"
+        "503":
+          description: This response will be presented when an unexpected internal
+            error has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "400":
+          description: This response will be presented when a validation error has
+            occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "502":
+          description: "This response will be presented when an unexpected error has\
+            \ occurred, this is most likely to do with a client error. The user will\
+            \ be prompted to try again."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "401":
+          description: This response will be presented when the attempt to call is
+            unauthorised.
+          content:
+            application/json: { }
+        "403":
+          description: This response will be presented when the attempt to call is
+            forbidden.
+          content:
+            application/json: { }
+        "429":
+          description: This response will be presented when your quota has been exceeded.
+            The quota resets every 60 seconds and the value varies per environment
+          content:
+            application/json: { }
+    delete:
+      security:
+        - OAuth2: []
+      tags:
+        - Property
+      summary: Removes Commercial Properties (UK Only)
+      description: Remove commercial properties
+      operationId: removeCommercialPropertyDetails
+      parameters:
+        - name: reference
+          in: path
+          description: The reference of the property. This must be the same provided at space level, when a property defines a building with no spaces.
+          example: 'Property_Reference_123'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoveCommercialProperty"
+        required: true
+      responses:
+        "200":
+          description: Successfully removed the property and associated listings.
+        "401":
+          description: This response will be presented when the attempt to call is unauthorised.
+          content:
+            application/json: { }
+        "403":
+          description: This response will be presented when the attempt to call is forbidden.
+          content:
+            application/json: { }
+        "404":
+          description: This response will be presented when the property is not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "502":
+          description: This response will be presented when an unexpected error has occurred, please try again.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "503":
+          description: This response will be presented when an unexpected internal error has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "429":
+          description: This response will be presented when your quota has been exceeded.
+            The quota resets every 60 seconds and the value varies per environment
+          content:
+            application/json: { }
+  /v2/property/commercial/branch:
+    get:
+      security:
+        - OAuth2:
+            - client Grants read and write access
+      summary: Gets list of commercial properties (UK Only) by branch
+      description: Gets list of commercial properties (UK Only) by branch
+      operationId: getCommercialPropertiesByBranch
+      parameters:
+        - name: id
+          in: query
+          description: The ID of the branch
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          description: The page number to return
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          description: The size of results to be returned in a page
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "503":
+          description: This response will be presented when an unexpected internal
+            error has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "200":
+          description: Properties are found for the branch and the response object will include all
+            the property details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropertyAction"
+        "502":
+          description: "This response will be presented when an unexpected error has\
+            \ occurred, this is most likely to do with a client error. The user will\
+            \ be prompted to try again."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "401":
+          description: This response will be presented when the attempt to call is
+            unauthorised.
+          content:
+            application/json: { }
+        "403":
+          description: This response will be presented when the attempt to call is
+            forbidden.
+          content:
+            application/json: { }
+        "429":
+          description: This response will be presented when your quota has been exceeded.
+            The quota resets every 60 seconds and the value varies per environment
+          content:
+            application/json: { }
+components:
+  securitySchemes:
+    OAuth2:
+      description: This API uses OAuth2 client credentials flow for server to server authentication
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: /oauth/token
+          scopes: {}
+  schemas:
+    Amenity:
+      type: string
+      description: List of amenities offered at advertised building.
+      enum:
+        - WIFI
+        - CONCIERGE
+        - PARKING
+        - GYM
+        - SECURITY_SYSTEM
+        - TWENTY_FOUR_HOUR_ACCESS
+        - BIKE_STORAGE
+        - BILLS_INCLUDED
+        - CAFE
+        - CLEANING_SERVICES
+        - COMMUNAL_AREAS
+        - COMMUNAL_GARDENS
+        - FLEXIBLE_TENANCIES
+        - PETS_ALLOWED
+        - RESTAURANT
+        - PROFESSIONAL_MANAGEMENT
+        - ROOF_TERRACE
+        - SERVICES_INCLUDED
+        - SHARED_WORKSPACE
+        - SOCIAL_ACTIVITIES
+        - TRANSPORT_LINKS
+        - WELL_CONNECTED
+        - CONTROLLED_ACCESS
+        - CONFERENCING_FACILITY
+        - PROPERTY_MANAGER_ON_SITE
+        - KITCHEN
+        - STORAGE_SPACE
+        - COMMON_PARTS_WC_FACILITIES
+        - DDA_COMPLIANT
+        - NATURAL_LIGHT
+        - OPEN_PLAN
+        - PARTITIONED_OFFICES
+        - PLUG_AND_PLAY
+        - RECEPTION
+        - SECURE_STORAGE
+        - SHOWER_FACILITIES
+        - OUTDOOR_SEATING
+        - AIR_CONDITIONING
+        - EVENT_SPACES
+        - CENTRAL_HEATING
+        - RAISED_FLOOR
+        - BASEMENT
+    AreaSizeUnit:
+      type: string
+      description: The advertised unit's size unit.
+      example: SQFT
+      enum:
+        - SQFT
+        - SQM
+        - ACRES
+        - HECTARES
+    GradeOfSpaceType:
+      type: string
+      description: The classification grade of the office space.
+      enum:
+        - A
+        - B
+        - C
+      example: A
+    Capacity:
+      type: object
+      properties:
+        minimum:
+          type: integer
+          description: Minimum capacity of this commercial listing.
+          format: int64
+          example: 50
+        maximum:
+          type: integer
+          description: Maximum capacity of this commercial listing.
+          format: int64
+          example: 80
+      description: Number of people that can fit in this property listing.
+    Condition:
+      type: string
+      description: The condition the space is in.
+      enum:
+        - FULL_FIT_OUT
+        - PARTIAL_FIT_OUT
+        - SHELL_SPACE
+      example: FULL_FIT_OUT
+    IndustrialAndLogistics:
+      required:
+        - subType
+      type: object
+      description: Model representing sub types that falls under industrial and logistics property classification. This includes COMMERCIAL_KITCHEN, DISTRIBUTION_WAREHOUSE, FACTORY_MANUFACTURING, HEAVY_INDUSTRIAL, INDUSTRIAL_PARK, LIGHT_INDUSTRIAL, SELF_STORAGE, WAREHOUSE and WORKSHOP.
+      example:
+        subType: "DISTRIBUTION_WAREHOUSE"
+        clearHeight: 10
+        clearHeightUnit: "FT"
+        driveInBays: 10
+        dockLevelers: 5
+        powerSupplyKiloVoltAmperes: 90
+        floorLoadingCapacityKiloNewtons: 50
+        yardDepthMetres: 50
+      properties:
+        clearHeight:
+          type: integer
+          format: int32
+          description: "The height of a building from the floor to the bottom of\
+            \ the lowest hanging item on the ceiling (i.e. sprinklers, lights, etc.)"
+          example: 20
+        clearHeightUnit:
+          $ref: "#/components/schemas/ClearHeightUnit"
+        driveInBays:
+          type: integer
+          description: "The number of drive in bays a warehouse, manufacturing plant,\
+            \ or distribution center have where goods are loaded and unloaded."
+          format: int32
+          example: 30
+        dockLevelers:
+          type: integer
+          description: The number of dock levellers.
+          format: int32
+          example: 10
+        powerSupplyKiloVoltAmperes:
+          type: number
+          description: The power supply, measured in kVA.
+          format: double
+          example: 90
+        floorLoadingCapacityKiloNewtons:
+          type: number
+          description: The floor loading capacity, measured in kN.
+          format: double
+          example: 50
+        yardDepthMetres:
+          type: number
+          description: The yard depth, measured in metres.
+          format: double
+          example: 50
+    ClearHeightUnit:
+      type: string
+      description: Industrial and logistics type space clear height unit.
+      enum:
+        - FT
+        - METRES
+      example: FT
+    LandAndDevelopment:
+      required:
+        - subType
+      type: object
+      description: Model representing sub types that falls under land and development property classification. This includes COMMERCIAL_DEVELOPMENT, LAND, RESIDENTIAL_DEVELOPMENT, FARM AND WOODLAND.
+      example:
+        subType: "COMMERCIAL_DEVELOPMENT"
+    LeisureAndHospitality:
+      required:
+        - subType
+      type: object
+      properties:
+        bedrooms:
+          type: integer
+          description: The number of bedrooms.
+          format: int32
+          example: 10
+      description: Model representing sub types that falls under leisure and hospitality property classification. This includes BAR, CAFE, HOTEL, LEISURE_FACILITY, PUB, RESTAURANT, CAMPSITE_HOLIDAY_VILLAGE, COMM_GUEST_HOUSE and TAKEAWAY.
+      example:
+        subType: "LEISURE_FACILITY"
+        bedrooms: 10
+    LetType:
+      type: string
+      example: SHORT
+      description: Let type of the supplied rental unit. This field is applicable only to LETTINGS properties.
+      enum:
+        - SHORT
+        - LONG
+        - FLEXIBLE
+        - NOT_SPECIFIED
+    BuildingOnly:
+      description: Commercial building details.
+      required:
+        - agentId
+        - description
+        - location
+        - summary
+        - transactionType
+        - pricing
+        - primaryPropertyClassification
+        - status
+        - published
+      type: object
+      properties:
+        description:
+          maxLength: 1000000
+          minLength: 1
+          type: string
+          description: Full description of the building.
+          example: Office block consisting of 6 floors above ground and a basement
+        agentId:
+          type: integer
+          description: The agent ID of the agent advertising the building.
+          format: int64
+          example: 68650
+        summary:
+          maxLength: 1500
+          minLength: 1
+          type: string
+          description: Full summary of the building.
+          example: An office block in soho
+        floors:
+          maximum: 100
+          minimum: 0
+          type: integer
+          description: Total number of floors in the whole building
+          format: int32
+          example: 6
+        transactionType:
+          $ref: "#/components/schemas/TransactionType"
+        yearBuilt:
+          type: integer
+          description: Date when the building was built.
+          format: int32
+          example: 1999
+        yearRenovated:
+          type: integer
+          description: Date when the building was renovated.
+          format: int32
+          example: 2022
+        sizing:
+          $ref: "#/components/schemas/BuildingSizing"
+        pricing:
+          $ref: "#/components/schemas/BuildingPricing"
+        location:
+          $ref: "#/components/schemas/Location"
+        owner:
+          $ref: "#/components/schemas/Owner"
+        keyFeatures:
+          maxItems: 10
+          minItems: 0
+          type: array
+          description: List of key features for the advertised building.
+          items:
+            type: string
+            description: List of key features for the advertised building.
+          example: [ "Discover stylish private offices and sleek desks in this newly available design-led workspace by Co-Space.",
+                     "Take a moment to relax, unwind, gather thoughts and rejuvenate in the stylishly designed breakout spaces." ]
+        amenities:
+          type: array
+          items:
+            $ref: "#/components/schemas/Amenity"
+          example: [ CONCIERGE, WIFI ]
+        useClasses:
+          type: array
+          items:
+            $ref: "#/components/schemas/UseClass"
+          example: [ CLASS_E ]
+        environment:
+          $ref: "#/components/schemas/Environment"
+        tenureType:
+          $ref: "#/components/schemas/TenureType"
+        tenureUnexpiredYears:
+          type: integer
+          description: How many years are left on a lease.
+          format: int32
+          example: 125
+          maximum: 1000
+        listedBuilding:
+          type: boolean
+          description: Is the property listed.
+          example: true
+        businessForSale:
+          type: boolean
+          description: Indicates whether the business associated with the property is for sale.
+          example: false
+        auction:
+          type: boolean
+          description: Indicates whether the property is an auction property. Applicable only for SALES listings. Defaults to false if not provided.
+          example: false
+        published:
+          type: boolean
+          description: Indicates whether the building should be displayed to consumers on the website. Set this to true only if the property is currently available, under offer, or let agreed. If the property is sold, let, or otherwise unavailable, this should be set to false.
+        planningPermission:
+          $ref: "#/components/schemas/PlanningPermission"
+        parkingSpaces:
+          type: integer
+          description: Number of parking spaces.
+          format: int32
+          example: 0
+        media:
+          $ref: "#/components/schemas/Media"
+        primaryPropertyClassification:
+          $ref: "#/components/schemas/PropertyClassification"
+        secondaryPropertyClassifications:
+          type: array
+          description: List of additional property classifications
+          items:
+            $ref: "#/components/schemas/PropertyClassification"
+        status:
+          $ref: "#/components/schemas/Status"
+        letType:
+          $ref: "#/components/schemas/LetType"
+        availableDate:
+          type: string
+          description: Date when this space is available.
+          format: date
+          example: 2024-10-30
+        serviceCharge:
+          type: number
+          description: Service charge applicable for this space.
+          example: 1100
+        businessRates:
+          type: number
+          description: Business rate applicable for this space.
+        letContractLength:
+          type: integer
+          description: Length of rental contract (lettings only) for the space in MONTHS. This field is applicable only to LETTINGS properties.
+          format: int32
+          example: 24
+        isRentAllInclusive:
+          type: boolean
+          description: Specifies if the rent includes all additional costs. This field is applicable only to LETTINGS properties.
+          example: true
+        condition:
+          $ref: "#/components/schemas/Condition"
+    BuildingWithSpaces:
+      description: Commercial building details with spaces.
+      required:
+        - agentId
+        - description
+        - location
+        - spaces
+        - summary
+        - transactionType
+        - status
+        - primaryPropertyClassification
+        - pricing
+        - published
+      type: object
+      properties:
+        description:
+          maxLength: 1000000
+          minLength: 1
+          type: string
+          description: Full description of the building.
+          example: Office block consisting of 6 floors above ground and a basement
+        agentId:
+          type: integer
+          description: The agent ID of the agent advertising the building.
+          format: int64
+          example: 68650
+        summary:
+          maxLength: 1500
+          minLength: 1
+          type: string
+          description: Full summary of the building.
+          example: An office block in soho
+        floors:
+          maximum: 100
+          minimum: 0
+          type: integer
+          description: Total number of floors in the whole building
+          format: int32
+          example: 6
+        transactionType:
+          $ref: "#/components/schemas/TransactionType"
+        yearBuilt:
+          type: integer
+          description: Date when the building was built.
+          format: int32
+          example: 1999
+        yearRenovated:
+          type: integer
+          description: Date when the building was renovated.
+          format: int32
+          example: 2022
+        sizing:
+          $ref: "#/components/schemas/BuildingSizing"
+        pricing:
+          $ref: "#/components/schemas/BuildingPricing"
+        location:
+          $ref: "#/components/schemas/Location"
+        owner:
+          $ref: "#/components/schemas/Owner"
+        keyFeatures:
+          maxItems: 10
+          minItems: 0
+          type: array
+          description: List of key features for the advertised building.
+          items:
+            type: string
+            description: List of key features for the advertised building.
+          example: [ "Discover stylish private offices and sleek desks in this newly available design-led workspace by Co-Space.",
+                     "Take a moment to relax, unwind, gather thoughts and rejuvenate in the stylishly designed breakout spaces." ]
+        amenities:
+          type: array
+          items:
+            $ref: "#/components/schemas/Amenity"
+          example: [ CONCIERGE, WIFI ]
+        useClasses:
+          type: array
+          items:
+            $ref: "#/components/schemas/UseClass"
+          example: [ CLASS_E ]
+        environment:
+          $ref: "#/components/schemas/Environment"
+        tenureType:
+          $ref: "#/components/schemas/TenureType"
+        tenureUnexpiredYears:
+          type: integer
+          description: How many years are left on a lease.
+          format: int32
+          example: 125
+          maximum: 1000
+        listedBuilding:
+          type: boolean
+          description: Is the property listed.
+          example: true
+        businessForSale:
+          type: boolean
+          description: Indicates whether the business associated with the property is for sale.
+          example: false
+        published:
+          type: boolean
+          description: Indicates whether the building should be displayed to consumers on the website. Set this to true only if the property is currently available, under offer, or let agreed. If the property is sold, let, or otherwise unavailable, this should be set to false.
+        planningPermission:
+          $ref: "#/components/schemas/PlanningPermission"
+        parkingSpaces:
+          type: integer
+          description: Number of parking spaces.
+          format: int32
+          example: 0
+        media:
+          $ref: "#/components/schemas/Media"
+        spaces:
+          maxItems: 50
+          minItems: 1
+          type: array
+          description: Define the space/s available in the building e.g. floor / unit.
+          items:
+            $ref: "#/components/schemas/Space"
+        primaryPropertyClassification:
+          $ref: "#/components/schemas/PropertyClassification"
+        secondaryPropertyClassifications:
+          type: array
+          description: List of additional property classifications
+          items:
+            $ref: "#/components/schemas/PropertyClassification"
+        status:
+          $ref: "#/components/schemas/Status"
+        letType:
+          $ref: "#/components/schemas/LetType"
+        availableDate:
+          type: string
+          description: Date when this space is available.
+          format: date
+          example: 2024-10-30
+        serviceCharge:
+          type: number
+          description: Service charge applicable for this space.
+          example: 1100
+        businessRates:
+          type: number
+          description: Business rate applicable for this space.
+        letContractLength:
+          type: integer
+          description: Length of rental contract (lettings only) for the space in MONTHS. This field is applicable only to LETTINGS properties.
+          format: int32
+          example: 24
+        isRentAllInclusive:
+          type: boolean
+          description: Specifies if the rent includes all additional costs. This field is applicable only to LETTINGS properties.
+          example: true
+        condition:
+          $ref: "#/components/schemas/Condition"
+    SpacePricing:
+      required:
+        - price
+      type: object
+      properties:
+        price:
+          type: number
+          description: Price of the space.
+          format: float
+          example: 333.33
+        displayQualifier:
+          $ref: "#/components/schemas/SpacePriceDisplayQualifier"
+        frequency:
+          $ref: "#/components/schemas/RentFrequency"
+        rentObligation:
+          $ref: "#/components/schemas/RentObligation"
+      description: Pricing details of an individual space within a building. This object is optional at space level. Pricing must always be provided at building level via `BuildingPricing`.
+    BuildingPricing:
+      required:
+        - price
+      type: object
+      properties:
+        price:
+          type: number
+          description: Price of the property.
+          format: float
+          example: 333.33
+        displayQualifier:
+          $ref: "#/components/schemas/BuildingPriceDisplayQualifier"
+        frequency:
+          $ref: "#/components/schemas/RentFrequency"
+        rentObligation:
+          $ref: "#/components/schemas/RentObligation"
+      description: Pricing details of the building. This object is mandatory — pricing at the building level must always be supplied, regardless of whether the property is uploaded as a building-only listing or a building with spaces.
+    Status:
+      type: string
+      description: Status of the space.
+      example: AVAILABLE
+      enum:
+        - AVAILABLE
+        - SOLD_STC
+        - SOLD_STCM
+        - RESERVED
+        - LET_AGREED
+        - UNDER_OFFER
+    StreetView:
+      type: object
+      properties:
+        showStreetView:
+          type: boolean
+          description: Show street view for the building. You cannot set this to 'true' if showMap is set to 'false'.
+          example: true
+        heading:
+          type: number
+          description: The heading of the point of view.
+          format: float
+          example: 151.507488
+          minimum: -360
+          maximum: 360
+        pitch:
+          type: number
+          description: The pitch of the point of view.
+          format: float
+          example: 21.507436
+          minimum: -180
+          maximum: 180
+        zoom:
+          type: integer
+          description: The zoom of the point of view.
+          format: int32
+          example: 10
+        latitude:
+          type: number
+          description: The latitude of the point of view.
+          format: float
+          example: 51.507458
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          description: The longitude of the point of view.
+          format: float
+          example: -0.127853
+          minimum: -180
+          maximum: 180
+      description: Street view details of the building.
+    Location:
+      required:
+        - displayAddress
+        - buildingIdentifier
+        - postcode
+      type: object
+      properties:
+        displayAddress:
+          type: string
+          description: Full display address of the building.
+          example: 33 Soho Square, London
+          maxLength: 120
+          minLength: 1
+        postcode:
+          type: string
+          description: Valid UK postcode of the building being advertised.
+          example: W1D 3QU
+          maxLength: 9
+        buildingIdentifier:
+          type: string
+          maxLength: 100
+          minLength: 1
+          description: Identifier for the building.
+          example: '33 Soho Square'
+        latitude:
+          type: number
+          format: float
+          description: Latitude of the building
+          minimum: -90
+          maximum: 90
+          example: 51.513845
+        longitude:
+          type: number
+          format: float
+          description: Longitude of the building
+          minimum: -180
+          maximum: 180
+          example: -0.131678
+        uprn:
+          type: integer
+          description: The unique property reference number.
+          format: int64
+          example: 10033641189
+        showMap:
+          type: boolean
+          description: Show the map for the building.
+          example: true
+        streetView:
+          $ref: "#/components/schemas/StreetView"
+      description: The building's locations details.
+    MediaAsset:
+      type: object
+      properties:
+        description:
+          maxLength: 200
+          minLength: 0
+          type: string
+          example: "Sample description for media asset"
+        url:
+          description: "For brochures, url's must have a '.pdf' extension."
+          maxLength: 250
+          minLength: 0
+          type: string
+          example: "https://www.rightmove.co.uk/media/sample.jpg"
+        order:
+          type: integer
+          format: int32
+          example: 1
+    Media:
+      description: "Includes media information about the listing or building being advertised."
+      type: object
+      properties:
+        photos:
+          maxItems: 999
+          minItems: 0
+          type: array
+          items:
+            "$ref": "#/components/schemas/MediaAsset"
+          example:
+            - description: "Exterior view of the commercial building"
+              url: "https://www.rightmove.co.uk/photos/photo1.jpg"
+              order: 0
+            - description: "Photo of the office reception area"
+              url: "https://www.rightmove.co.uk/photos/photo2.jpg"
+              order: 1
+        floorPlans:
+          maxItems: 999
+          minItems: 0
+          type: array
+          items:
+            "$ref": "#/components/schemas/MediaAsset"
+          example:
+            - description: "Ground floor plan"
+              url: "https://www.rightmove.co.uk/floorplans/groundfloor.jpg"
+              order: 0
+        epcs:
+          maxItems: 999
+          minItems: 0
+          type: array
+          items:
+            "$ref": "#/components/schemas/MediaAsset"
+          example:
+            - description: "EPC Certificate"
+              url: "https://www.rightmove.co.uk/epcs/epc_certificate.jpg"
+              order: 0
+        epcGraphs:
+          maxItems: 999
+          minItems: 0
+          type: array
+          items:
+            "$ref": "#/components/schemas/MediaAsset"
+          example:
+            - description: "EPC Rating Graph"
+              url: "https://www.rightmove.co.uk/epcGraphs/rating_graph.jpg"
+              order: 0
+        brochures:
+          maxItems: 999
+          minItems: 0
+          type: array
+          items:
+            "$ref": "#/components/schemas/MediaAsset"
+          example:
+            - description: "Property brochure PDF"
+              url: "https://www.rightmove.co.uk/brochures/property_brochure.pdf"
+              order: 0
+        virtualTours:
+          maxItems: 999
+          minItems: 0
+          type: array
+          items:
+            "$ref": "#/components/schemas/MediaAsset"
+          example:
+            - description: "Virtual tour of the property"
+              url: "https://www.rightmove.co.uk/virtualTours/tour1.mp4"
+              order: 0
+    Environment:
+      type: object
+      properties:
+        environmentalDescription:
+          type: string
+          description: Environmental description of the building.
+          example: This building is very green, featuring solar panels and ground source heat pumps.
+          maximum: 5000
+        breeamRating:
+          type: integer
+          description: BREEAM is a way to rate and certify a building's environmental
+            sustainability.
+          format: int32
+          example: 85
+          minimum: 0
+          maximum: 100
+        epcRating:
+          type: integer
+          description: The numeric energy performance certificate rating of the building.
+          format: int32
+          example: 92
+          minimum: -999
+          maximum: 500
+      description: The building's environmental details.
+    Offices:
+      required:
+        - subType
+      type: object
+      description: Model representing sub types that falls under offices property classification. This includes BUSINESS_PARK, OFFICE and SERVICED_OFFICE.
+      properties:
+        desks:
+          type: integer
+          description: Number of desks that can fit in this property listing.
+          format: int64
+          example: 70
+        capacity:
+          $ref: "#/components/schemas/Capacity"
+        pricePerDeskPerMonth:
+          type: integer
+          description: The price per desk per month.
+          format: int64
+          example: 500
+        gradeOfSpaceType:
+          $ref: "#/components/schemas/GradeOfSpaceType"
+      example:
+        subType: "SERVICED_OFFICE"
+        desks: 75
+        capacity:
+          minimum: 60
+          maximum: 80
+        pricePerDeskPerMonth: 450
+        gradeOfSpaceType: "A"
+    Other:
+      required:
+        - subType
+      type: object
+      description: Model representing sub types that falls under other property classification. This includes AUTOMOTIVE, CHILDCARE_FACILITY, DATA_CENTRE, GARAGE, HEALTHCARE_FACILITY, LIFE_SCIENCES_LABS, MIXED_USE, OTHER, PETROL_STATION, PLACE_OF_WORSHIP, SCIENCE_PARK, STUDENT_HOUSING, DENTAL_CARE, PHARMACY and CARE_HOME_FACILITY.
+      example:
+        subType: "DATA_CENTRE"
+    Owner:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The company or business that owns the building.
+          maxLength: 200
+        description:
+          type: string
+          description: The description of who the owner is.
+          example: A private commercial real estate investment firm based in London, United Kingdom.
+          maxLength: 5000
+      description: Details about the building's owner.
+    PropertyClassification:
+      required:
+        - subType
+      type: object
+      properties:
+        subType:
+          $ref: "#/components/schemas/SubType"
+      description: "This class represents a flexible property classification model\
+        \ that can have various forms. \n\nDepending on the specific sub-type, the\
+        \ data provided will be mapped to the appropriate extended model, such as\
+        \ Offices, IndustrialAndLogistics, LandAndDevelopment, LeisureAndHospitality,\
+        \ Retail and Other."
+      discriminator:
+        propertyName: subType
+      oneOf:
+        - $ref: "#/components/schemas/Offices"
+        - $ref: "#/components/schemas/IndustrialAndLogistics"
+        - $ref: "#/components/schemas/LandAndDevelopment"
+        - $ref: "#/components/schemas/LeisureAndHospitality"
+        - $ref: "#/components/schemas/Retail"
+        - $ref: "#/components/schemas/Other"
+    RemoveCommercialProperty:
+      required:
+        - agentId
+        - removalReason
+      type: object
+      properties:
+        agentId:
+          type: integer
+          description: The ID of the agent removing the property, must match the agent ID the property was created against.
+          format: int64
+        removalReason:
+          type: string
+          description: The reason for the removal of the property.
+          enum:
+            - SOLD_BY_US
+            - SOLD_BY_ANOTHER_AGENT
+            - WITHDRAWN_FROM_MARKET
+            - LOST_INSTRUCTION
+            - LET_BY_US
+            - REMOVED
+    RentFrequency:
+      type: string
+      description: Frequency of rental payments for the property. This field is applicable only to LETTINGS properties.
+      example: MONTHLY
+      enum:
+        - YEARLY
+        - MONTHLY
+    Retail:
+      required:
+        - subType
+      type: object
+      properties:
+        frontageFeet:
+          type: integer
+          description: Size of shop front, measured in ft.
+          format: int32
+          example: 15
+      description: Model representing sub types that falls under retail property classification. This includes RETAIL_HIGH_STREET, RETAIL_OUT_OF_TOWN, RETAIL_PROPERTY_SHOPPING_CENTRE, SHOP, TRADE_COUNTER, POST_OFFICE, CONVENIENCE_STORE and SHOWROOM.
+      example:
+        subType: "RETAIL_HIGH_STREET"
+        frontageFeet: 20
+    CommercialPropertyWithSpaces:
+      required:
+        - building
+      type: object
+      properties:
+        building:
+          $ref: "#/components/schemas/BuildingWithSpaces"
+    CommercialPropertyBuildingOnly:
+      required:
+        - building
+      type: object
+      properties:
+        building:
+          $ref: "#/components/schemas/BuildingOnly"
+    SpaceSizing:
+      type: object
+      properties:
+        size:
+          type: number
+          description: Total size of the unit advertised. Required at space level.
+          format: float
+          example: 5941
+        unit:
+          description: The advertised unit's size unit. Required at space level.
+          $ref: "#/components/schemas/AreaSizeUnit"
+        measurementType:
+          type: string
+          description: The type of measurement for the size of the unit.
+          example: GIA
+          enum:
+            - GEA
+            - GIA
+            - NIA
+            - IPMS1
+            - IPMS2
+            - IPMS3_1
+            - IPMS3_2
+      description: Sizing details of an individual space within a building. This object is mandatory for every space, and both `size` and `unit` must be provided.
+    BuildingSizing:
+      type: object
+      properties:
+        size:
+          type: number
+          description: Total size of the building. When a property defines a building, this is required only if unit is provided and both minSize and maxSize are missing.
+          format: float
+          example: 5941
+        minSize:
+          type: number
+          description: Minimum size of the building. When a property defines a building, this is required only if unit and maxsize are provided.
+          format: float
+          example: 100
+        maxSize:
+          type: number
+          description: Maximum size of the building. When a property defines a building, this is required only if unit and minSize are provided.
+          format: float
+          example: 200
+        unit:
+          description: The advertised unit's size unit. When a property defines a building, this is required only if size is provided, or both minSize and maxSize are provided.
+          $ref: "#/components/schemas/AreaSizeUnit"
+        measurementType:
+          type: string
+          description: The type of measurement for the size of the unit.
+          example: GIA
+          enum:
+            - GEA
+            - GIA
+            - NIA
+            - IPMS1
+            - IPMS2
+            - IPMS3_1
+            - IPMS3_2
+      description: Sizing details of the building. This object is optional. If provided, `unit` must be supplied alongside either `size`, or both `minSize` and `maxSize`. `minSize` and `maxSize` must either both be present or both be absent, and `minSize` must be less than `maxSize`.
+    Space:
+      required:
+        - floorIdentifier
+        - name
+        - primaryPropertyClassification
+        - reference
+        - sizing
+        - status
+      type: object
+      properties:
+        reference:
+          type: string
+          description: The reference of the space being sent. The reference must be unique for 
+            each space and different from the one used in the request url.
+          example: 'Space_Reference_123'
+          pattern: '^[a-zA-Z0-9-_]{1,100}$'
+        name:
+          type: string
+          description: The name of the space being sent.
+          example: 2nd floor
+          maxLength: 200
+          minLength: 0
+        floorIdentifier:
+          type: string
+          maxLength: 50
+          description: The floor number of the space being sent, to allow address matching. Mandatory when at space level.
+          example: 'Floor 3'
+        description:
+          maxLength: 1000000
+          minLength: 0
+          type: string
+          description: Full description of the space.
+          example: 5,941 SQ FT available on the second floor, fully fitted out and ready for occupancy.
+        sizing:
+          $ref: "#/components/schemas/SpaceSizing"
+        status:
+          $ref: "#/components/schemas/Status"
+        pricing:
+          $ref: "#/components/schemas/SpacePricing"
+        keyFeatures:
+          type: array
+          description: List of key features offered with this space.
+          items:
+            type: string
+            description: List of key features offered with this space.
+          example: [ "Discover stylish private offices and sleek desks in this newly available design-led workspace by Co-Space.",
+                     "Take a moment to relax ,unwind, gather thoughts and rejuvenate in the stylishly designed breakout spaces." ]
+          maxItems: 10
+          minItems: 1
+        letType:
+          $ref: "#/components/schemas/LetType"
+        availableDate:
+          type: string
+          description: Date when this space is available.
+          format: date
+          example: 2024-10-30
+        serviceCharge:
+          type: number
+          description: Service charge applicable for this space.
+          example: 1100
+        businessRates:
+          type: number
+          description: Business rate applicable for this space.
+        letContractLength:
+          type: integer
+          description: Length of rental contract (lettings only) for the space in
+            MONTHS.
+          format: int32
+          example: 24
+        isRentAllInclusive:
+          type: boolean
+          description: Specifies if the rent includes all additional costs.
+          example: true
+        published:
+          type: boolean
+          description: Indicates whether the space should be displayed to consumers on the website. Set this to true only if the property is currently available, under offer, or let agreed. If the property is sold, let, or otherwise unavailable, this should be set to false.
+        condition:
+          $ref: "#/components/schemas/Condition"
+        primaryPropertyClassification:
+          $ref: "#/components/schemas/PropertyClassification"
+        secondaryPropertyClassifications:
+          type: array
+          description: List of additional property classifications
+          items:
+            $ref: "#/components/schemas/PropertyClassification"
+        media:
+          $ref: "#/components/schemas/Media"
+        order:
+          type: integer
+          description: The order of the space. This value is optional and if not specified, the order will be determined by the order of the spaces in the request.
+                       If an order is provided for a single space, one must be provided for all spaces.
+                       Duplicate order values are not allowed.
+          format: int32
+          example: 1
+      description: List of spaces available at the advertised building. This is required for both sales and lettings properties.
+    RentObligation:
+      type: string
+      description: "The rent amount and service type that the tenant (lessee) will\
+          \ be responsible to pay to the landlord (lessor) throughout the lease term\
+          \ is negotiated prior to both parties signing a lease agreement.\n\n1. Fully\
+          \ Repairing & Insuring: All obligations for repairing and insuring the property\
+          \ (or their share of the property) both internally and externally.\n\n2. Internal\
+          \ Repairing Only: The tenant is responsible for internal repairs only. The landlord\
+          \ is responsible for structural and external repairs.\n\n3. Internal Repairing\
+          \ & Insuring: The tenant is responsible for internal repairs and insurance\
+          \ for internal parts of the property only. The landlord is responsible for\
+          \ structural and external repairs.\n\n4. Negotiable or TBD: This is used when\
+          \ the leasing contact does not provide the service type."
+      example: FULLY_REPAIRING_AND_INSURING
+      enum:
+        - FULLY_REPAIRING_AND_INSURING
+        - INTERNAL_REPAIRING_AND_INSURING
+        - INTERNAL_REPAIRING_ONLY
+        - NEGOTIABLE
+    SubType:
+      type: string
+      description: The sub type of the property listing being advertised.
+      example: SERVICED_OFFICE
+      enum:
+        - AUTOMOTIVE
+        - BAR
+        - BUSINESS_PARK
+        - CAFE
+        - CARE_HOME_FACILITY
+        - CHILDCARE_FACILITY
+        - COMMERCIAL_DEVELOPMENT
+        - COMMERCIAL_KITCHEN
+        - DATA_CENTRE
+        - DENTAL_CARE
+        - DISTRIBUTION_WAREHOUSE
+        - FACTORY_MANUFACTURING
+        - FARM
+        - GARAGE
+        - HEALTHCARE_FACILITY
+        - HEAVY_INDUSTRIAL
+        - HOTEL
+        - INDUSTRIAL_PARK
+        - LAND
+        - LEISURE_FACILITY
+        - LIFE_SCIENCES_LABS
+        - LIGHT_INDUSTRIAL
+        - MIXED_USE
+        - OFFICE
+        - OTHER
+        - PETROL_STATION
+        - PLACE_OF_WORSHIP
+        - PHARMACY
+        - PUB
+        - RESIDENTIAL_DEVELOPMENT
+        - RESTAURANT
+        - RETAIL_HIGH_STREET
+        - RETAIL_OUT_OF_TOWN
+        - RETAIL_PROPERTY_SHOPPING_CENTRE
+        - SCIENCE_PARK
+        - SELF_STORAGE
+        - SERVICED_OFFICE
+        - SHOP
+        - SHOWROOM
+        - STUDENT_HOUSING
+        - TAKEAWAY
+        - TRADE_COUNTER
+        - WAREHOUSE
+        - WOODLAND
+        - WORKSHOP
+    TenureType:
+      type: string
+      description: Type of tenure for the property.
+      enum:
+        - FREEHOLD
+        - LEASEHOLD
+        - SHARE_OF_FREEHOLD
+      example: FREEHOLD
+    TransactionType:
+      type: string
+      description: Transaction type of the advertised building.
+      example: LETTINGS
+      enum:
+        - SALES
+        - LETTINGS
+    UseClass:
+      type: string
+      description: Commercial use classes of the property.
+      enum:
+        - CLASS_1A
+        - CLASS_3
+        - CLASS_4
+        - CLASS_5
+        - CLASS_6
+        - CLASS_7
+        - CLASS_8
+        - CLASS_9
+        - CLASS_10
+        - CLASS_11
+        - CLASS_B2
+        - CLASS_B8
+        - CLASS_C1
+        - CLASS_C2
+        - CLASS_C2A
+        - CLASS_C3
+        - CLASS_C4
+        - CLASS_E
+        - CLASS_F1
+        - CLASS_F2
+        - SUI_GENERIS
+      example: CLASS_E
+    PlanningPermission:
+      type: string
+      description: If the building has planning permission.
+      example: APPROVED
+      enum:
+        - APPROVED
+        - PENDING
+        - NONE
+    SpacePriceDisplayQualifier:
+      type: string
+      description: Qualifier on the advertised price of the space.
+      example: PRICE_ON_APPLICATION
+      enum:
+        - NONE
+        - PRICE_ON_APPLICATION
+    BuildingPriceDisplayQualifier:
+      type: string
+      description: Qualifier on the advertised price of the property.
+      example: GUIDE_PRICE
+      enum:
+        - NONE
+        - PRICE_ON_APPLICATION
+        - GUIDE_PRICE
+        - OFFERS_IN_EXCESS_OF
+        - OFFERS_IN_REGION_OF
+        - FROM
+    PropertySaveAction:
+      type: object
+      properties:
+        meta:
+          $ref: "#/components/schemas/PropertyMetadata"
+        data:
+          $ref: "#/components/schemas/PropertySaveData"
+      description: Property save action response.
+    PropertyAction:
+      type: object
+      properties:
+        meta:
+          $ref: "#/components/schemas/PropertyMetadata"
+        data:
+          $ref: "#/components/schemas/PropertyData"
+      description: Property save action response.
+    PropertySaveData:
+      type: object
+      properties:
+        links:
+          $ref: "#/components/schemas/PropertyLinks"
+      description: "Links leading to the saved property, including the property reference\
+        \ and the URL to the property details."
+    PropertyLinks:
+      type: object
+      properties:
+        self:
+          $ref: "#/components/schemas/PropertySelfLinks"
+        display:
+          $ref: "#/components/schemas/PropertyDisplayLinks"
+      description: "Links leading to the saved property, including the property reference\
+        \ and the URL to the property details."
+    PropertySelfLinks:
+      type: object
+      properties:
+        building:
+          type: object
+          properties:
+            externalReference:
+              type: string
+              description: The reference of the building.
+              example: 'Property_Reference_123'
+            selfLink:
+              type: string
+              description: The self link of the building.
+              example: /v2/property/commercial/123
+          example: { "Property_Reference_123": "/v2/property/commercial/123" }
+      description: "Link to get the building data via the API."
+    PropertyDisplayLinks:
+      type: object
+      properties:
+        building:
+          type: object
+          properties:
+            externalReference:
+              type: string
+              description: The reference of the building.
+              example: 'Property_Reference_123'
+            buildingDisplayLink:
+              type: string
+              description: The display link of the building.
+              example: /commercial-property/123
+          example: { "Property_Reference_123": "/commercial-property/123" }
+        spaces:
+          type: object
+          properties:
+            externalReference:
+              type: string
+              description: The reference of the space.
+              example: 'Space_Reference_456'
+            spaceDisplayLink:
+              type: string
+              description: The display link of the space.
+              example: /commercial-property/456
+          example: { "Space_Reference_456": "/properties/456" }
+      description: "Display link to how the building and space. NOTE: Building URLs are only available\
+        \ in the beta environment. Please note this page is in active development and is likely\
+        \ to change on a weekly basis."
+    PropertyData:
+      type: object
+      properties:
+        property:
+          $ref: "#/components/schemas/PropertyReference"
+      description: "Specific data related to the requested resource, such as property\
+        \ information or additional resource-specific details."
+    PropertyMetadata:
+      type: object
+      properties:
+        requestTimestamp:
+          type: string
+          description: Timestamp indicating when the request was made.
+        responseTimestamp:
+          type: string
+          description: Timestamp indicating when the response was generated.
+        traceId:
+          type: string
+          description: Identifier used for tracing purposes.
+      description: "Metadata associated with the response, including details such\
+        \ as request and response timestamps, and trace identifiers, etc."
+    PropertyReference:
+      type: object
+      description: Contains a properties unique reference or ID and optionally data
+        about the spaces within the property.
+    ProblemDetail:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+          format: int32
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+        properties:
+          type: object
+          additionalProperties:
+            type: object

@@ -1,0 +1,411 @@
+aid: rightmove
+name: Rightmove
+review:
+  question: Does Rightmove expose a real, reachable public developer API surface, and
+    what is its RESO posture?
+  answer: partial
+  date: '2026-07-26'
+  reviewer: API Evangelist
+  summary: |
+    Rightmove publishes real machine-readable contracts and a real developer portal,
+    but no anonymously callable API. A public Apigee-hosted portal at
+    api-docs.rightmove.co.uk ("Rightmove APIs - Early adopters") serves one OpenAPI
+    3.0.1 document anonymously — the Commercial Listings API — which was harvested
+    verbatim and parses. A second API, the Real Time Data Feed (RTDF), is documented
+    in a publicly downloadable PDF specification (v1.4.1) but is mutual-TLS gated and
+    returns 403 to anonymous callers. Both are WRITE-side APIs for pushing agent
+    listings INTO Rightmove; there is no public read API for listings, sold prices
+    or valuations. Working credentials for every environment are issued case by case
+    by the Rightmove Data Feed Team, and use is governed by a binding End User Licence
+    Agreement with Rightmove Group Limited.
+
+sector_posture:
+  home_market: United Kingdom
+  tier: portal-marketplace
+  market_seam: |
+    The UK has no MLS. Residential listings are controlled by two portals — Rightmove
+    and Zoopla — and reach them through agency CRM software and feed providers rather
+    than through a shared cooperative database. Rightmove therefore has no obligation
+    to expose a standard read contract, and it does not. What it does expose is the
+    inbound side: the schemas an agent's CRM must satisfy to get stock onto the site.
+    The open-data counterweight in this market sits with the public sector (HM Land
+    Registry Price Paid, Ordnance Survey addressing), not with Rightmove.
+
+  reso_posture: |
+    NO RESO REFERENCE FOUND ANYWHERE IN RIGHTMOVE'S SURFACE.
+
+    - RESO Web API certification: none found. No `Reso` route, no OData service root,
+      no `$metadata` document, and no OData conventions ($filter/$select/$expand,
+      @odata.* annotations) anywhere in the harvested OpenAPI or in the RTDF
+      specification.
+    - RESO Data Dictionary certification (any version — 1.7, 2.0): none found.
+      Rightmove uses its own proprietary schema. The Commercial Listings OpenAPI
+      declares 50 component schemas of Rightmove's own design (Building, Space,
+      Media, MediaAsset, ProblemDetail, PropertyReference, ...) with Rightmove's own
+      enumerations (status values AVAILABLE, SOLD_STC, SOLD_STCM, RESERVED,
+      LET_AGREED, UNDER_OFFER — these are British transaction states with no RESO
+      Data Dictionary equivalent). The RTDF spec uses Rightmove field names
+      (Network_ID, Branch_ID, Agent_Ref, Channel, Published, Property_Type,
+      Student_Property, TV_Licence_Inc) that are likewise proprietary.
+    - RESO certification directory: RESO's directory pages were probed and returned
+      HTTP 400 to an anonymous non-browser client, so the directory itself could not
+      be read here; however no Rightmove RESO claim surfaced in any Rightmove-owned
+      property, any Rightmove document, or any web search.
+    - Universal Property Identifier (UPI): not present. The API keys properties on
+      an agent-supplied `reference` (Commercial Listings) or `Agent_Ref` (RTDF),
+      scoped by Rightmove-issued Network_ID/Branch_ID.
+    - Assessment: this is a true absence, not a gap in probing. RESO is a North
+      American standard mandated by NAR for US MLSs. There is no NAR, no MLS and no
+      RESO-equivalent industry mandate in the UK, so the honest answer for a UK
+      portal is that RESO simply does not apply. The certification-is-not-reachability
+      tension does not arise here — Rightmove is neither certified nor reachable.
+    - reso_certified: false
+
+  access_gate:
+    classification: application-approval
+    what_a_developer_must_do_or_sign: |
+      1. Contact the Rightmove Data Feed Team at adfsupport@rightmove.co.uk. Every
+         documented path to credentials routes through this mailbox. The Commercial
+         Listings API overview states test credentials "requires test credentials
+         issued by the Rightmove Data Feed Team" and production "requires separate
+         production credentials, also provided by the Rightmove Data Feed Team". The
+         ADF page states "For access to the schemas or to be set up on the testing
+         environment, please contact the ADF Team at adfsupport@rightmove.co.uk".
+      2. Accept the RTDF End User Licence Agreement — a binding legal agreement with
+         RIGHTMOVE GROUP LIMITED (company number 03997679, 2 Caldecotte Lake Business
+         Park, Milton Keynes MK7 8LE), granting "a non-transferable, non-exclusive,
+         revocable, royalty-free licence". The EULA defines the Data Feed as covering
+         "the Commercial API, the New Homes API, the Overseas API and the UK Sales and
+         Lettings API".
+      3. Submit the ADF Provider Contact Form (PDF).
+      4. Complete a supervised testing cycle. For the Real Time Data Feed the
+         documented process is: request a testing commencement date; supply a mobile
+         number and preferred keystore format; receive a test pack and keystore with
+         cryptographic authentication details by email and the password by SMS 1-2
+         working days beforehand; test against Rightmove's test environment; then
+         request live details, which arrive as a live keystore, passwords and network
+         details by email and SMS.
+      5. In practice, hold or act for a Rightmove membership. RTDF calls require a
+         Network_ID and Branch_ID, which are "unique Rightmove reference" values
+         issued to member agents and their branches, and the EULA distinguishes
+         "Member" (a Rightmove customer per the Membership Classification) from a
+         non-Member acting as "Our Member's data processor". A developer with no
+         agent relationship has nothing to send.
+    nuance: |
+      The portal's Get Started page is stock Apigee boilerplate (Sign in → Register
+      apps → Access the API keys) and the Property Feed API Product carries
+      approvalType "auto", so the portal LOOKS self-serve. It is not: the API's own
+      overview and authentication pages both state that credentials for BOTH the
+      api-test and production environments are issued by the Rightmove Data Feed Team.
+      Classified application-approval rather than self-serve for that reason, and
+      rather than membership-required because Rightmove is a commercial portal, not
+      an MLS, board or association.
+    portal_maturity_caveat: |
+      The developer portal is explicitly pre-production. Its site id is
+      `rightmove-pd-preprod-apigee-commercialpoc`, its Apigee org is
+      `rightmove-pd-preprod-apigee`, its only API category is "Beta users", the site
+      title is "Rightmove APIs - Early adopters", and the API product description
+      reads "PREPROD API Product giving agents access to manage properties via their
+      feed providers/CRMs". The production API host it documents
+      (https://api-services.rightmove.co.uk) is nonetheless live and answers 401 on
+      the documented endpoint.
+
+  open_data:
+    exists: false
+    detail: |
+      Rightmove publishes no open, unlicensed, publicly callable dataset. The
+      Rightmove House Price Index is released as editorial/press pages and PDF
+      reports at https://www.rightmove.co.uk/news/house-price-index/ (HTTP 200), not
+      as an API, and all feed data is governed by the RTDF EULA. Rightmove's
+      robots.txt explicitly disallows /api/*. Genuinely open UK property data exists
+      but belongs to the public sector — HM Land Registry Price Paid Data and
+      Ordnance Survey open products — not to Rightmove; those are separate
+      organisations and are out of scope for this profile.
+
+  auth_model:
+    commercial_listings_api: |
+      OAuth2 client credentials, server to server. Token endpoint /oauth/token on
+      each environment (https://api-services.adftest.rightmove.com/oauth/token for
+      test). Client presents a ClientId and ClientKey issued by Rightmove, base64
+      encoded, and uses the returned token as `Authorization: Bearer <ACCESS_TOKEN>`.
+      Scopes "are not currently required or implemented". Note a defect in the
+      published contract: components.securitySchemes.OAuth2 declares a type of
+      `oauth2` but describes flows.implicit with authorizationUrl `/oauth/token` and
+      an empty scopes object, while the prose and the authentication page both say
+      client_credentials. Recorded verbatim in the harvested spec; not corrected.
+      There is no top-level `security` requirement in the document.
+    real_time_data_feed_api: |
+      Mutual TLS with a client certificate. Rightmove supplies a keystore containing
+      a private key and an X.509 certificate, in the keystore format the provider
+      requests, by email, with the password delivered by SMS. TLS 1.2 required
+      (support for TLS 1.0 and 1.1 was removed). Certificate providers must be on
+      Rightmove's supported list, obtained from the Data Feed Team. Calls additionally
+      carry Rightmove-issued Network_ID and Branch_ID values.
+    openid_connect: |
+      No OpenID Connect discovery document. https://www.rightmove.co.uk/.well-known/openid-configuration
+      returns Rightmove's branded soft-404 HTML page, not JSON.
+
+  webhooks_events_sdks_postman:
+    webhooks: none. The harvested OpenAPI declares no `webhooks` object and no
+      callbacks. The RTDF is poll-based - reconciliation is done by the consumer
+      calling GetBranchPropertyList and comparing Agent_Ref/Update_Date.
+    events: none published. The Commercial Listings API is documented as
+      asynchronous ("changes may take some time to reflect on the live website") but
+      exposes no event stream, no AsyncAPI and no callback URL (requireCallbackUrl
+      is false on the portal API doc record).
+    sdks: none published by Rightmove. github.com/rightmove exists (15 public repos)
+      but publishes no API client for these APIs. Third-party libraries exist (for
+      example the community PHP library frozensheep/rightmoveADF) but are not
+      Rightmove artifacts.
+    postman: no Postman collection or workspace published.
+    graphql: none. The portal record has graphqlSchema null and graphqlEndpointUrl
+      null.
+    grpc_asyncapi: none. grpcZipContent and asyncApiSpecContent are both null on the
+      portal record.
+    status_page: none found - status.rightmove.co.uk does not resolve.
+    security_txt: none - /.well-known/security.txt returns the branded soft-404 HTML.
+
+  product_api_family: |
+    The RTDF EULA names Rightmove's API family verbatim as "the Commercial API, the
+    New Homes API, the Overseas API and the UK Sales and Lettings API". Mapped to
+    what is actually documented:
+      - UK Sales and Lettings  -> Real Time Data Feed, SendProperty/RemoveProperty/
+        GetBranchPropertyList on adfapi.rightmove.co.uk/v1/property/
+      - Overseas               -> same RTDF interface, OverseasSendPropertyDetails
+      - Commercial             -> Commercial Listings API (OpenAPI 3.0.1) on
+        api-services.rightmove.co.uk/v2/property/commercial/
+      - New Homes              -> Automated Data Feed v4.0n, a bulk XML file feed
+        (XSD RightmoveV4n.xsd, file transfer, daily full upload). NOT an HTTP API, so
+        it is recorded in common[] as a Specification rather than in apis[].
+    Segmentation the docs themselves use: listings upload/update/remove, plus branch
+    and property performance reporting and lead/enquiry email retrieval on the RTDF.
+    There is no valuation/AVM API, no title or Land Registry API, no transaction,
+    conveyancing, tenancy, document or payments API in Rightmove's published surface.
+
+probes:
+  date: '2026-07-26'
+  note: All statuses observed anonymously from a non-UK IP with a desktop browser
+    User-Agent. www.rightmove.co.uk returns HTTP 200 with a branded "We couldn't find
+    the place you were looking for." HTML page for unknown paths, so a 200 on that
+    host is not evidence a resource exists; each was content-checked.
+  results:
+  - url: https://www.rightmove.co.uk/
+    status: 200
+    note: Live homepage.
+  - url: https://www.rightmove.co.uk/robots.txt
+    status: 200
+    note: 'Real robots.txt. Contains "Disallow: /api/*". No developer or docs paths
+      advertised.'
+  - url: https://www.rightmove.co.uk/adf.html
+    status: 200
+    note: REAL page - "Rightmove Automated Datafeed (ADF) Specifications". Links the
+      RTDF spec, the RTDF EULA, the ADF v4n spec and the Provider Contact Form, and
+      states schemas are obtained by emailing adfsupport@rightmove.co.uk.
+  - url: https://www.rightmove.co.uk/developers
+    status: 200
+    note: SOFT 404 - branded "We couldn't find the place you were looking for."
+  - url: https://www.rightmove.co.uk/api
+    status: 200
+    note: SOFT 404.
+  - url: https://www.rightmove.co.uk/openapi.json
+    status: 200
+    note: SOFT 404 (text/html).
+  - url: https://www.rightmove.co.uk/swagger.json
+    status: 200
+    note: SOFT 404 (text/html).
+  - url: https://www.rightmove.co.uk/api-docs
+    status: 200
+    note: SOFT 404 (text/html).
+  - url: https://www.rightmove.co.uk/$metadata
+    status: 200
+    note: SOFT 404 (text/html). No OData service document.
+  - url: https://www.rightmove.co.uk/.well-known/openid-configuration
+    status: 200
+    note: SOFT 404 (text/html). No OIDC discovery.
+  - url: https://www.rightmove.co.uk/.well-known/security.txt
+    status: 200
+    note: SOFT 404 (text/html). No security.txt.
+  - url: https://developer.rightmove.co.uk/
+    status: 000
+    note: NXDOMAIN.
+  - url: https://developers.rightmove.co.uk/
+    status: 000
+    note: NXDOMAIN.
+  - url: https://docs.rightmove.co.uk/
+    status: 000
+    note: NXDOMAIN.
+  - url: https://api-docs.rightmove.co.uk/
+    status: 200
+    note: REAL developer portal. Angular SPA on Google Apigee integrated portal.
+      Site id rightmove-pd-preprod-apigee-commercialpoc, site name "Rightmove APIs -
+      Early adopters".
+  - url: https://api-docs.rightmove.co.uk/portals/api/sites/rightmove-pd-preprod-apigee-commercialpoc/liveportal/sitemap
+    status: 200
+    note: Portal sitemap JSON. isLoggedIn false, features [portal.consumer_teams].
+  - url: https://api-docs.rightmove.co.uk/portals/api/sites/rightmove-pd-preprod-apigee-commercialpoc/liveportal/apis
+    status: 200
+    note: API catalogue JSON, served anonymously. Exactly ONE API doc - id 502184,
+      title "Commercial Listings", apiId/apiProductName property-feed-api-product,
+      specId property-feed-product-api-2.1.6, specFormat YAML, anonAllowed true,
+      snapshotState OK_SUBMITTED. apiProducts[0].description "PREPROD API Product
+      giving agents access to manage properties via their feed providers/CRMs",
+      approvalType auto. Single category "Beta users".
+  - url: https://api-docs.rightmove.co.uk/portals/api/sites/rightmove-pd-preprod-apigee-commercialpoc/liveportal/apis/property-feed-api-product/download_spec
+    status: 200
+    note: HARVESTED. application/octet-stream, 75326 bytes, OpenAPI 3.0.1 YAML.
+      Saved verbatim to openapi/rightmove-commercial-listings-openapi.yml.
+  - url: https://api-docs.rightmove.co.uk/portals/api/sites/rightmove-pd-preprod-apigee-commercialpoc/liveportal/apis/property-feed-api-product/spec
+    status: 200
+    note: Same document, JSON-wrapped ("Returning spec snapshot"). Not saved
+      separately - the download_spec YAML is the verbatim artifact.
+  - url: https://api-docs.rightmove.co.uk/portals/api/sites/rightmove-pd-preprod-apigee-commercialpoc/apidocs
+    status: 401
+    note: '"No authorization header provided" - the admin catalogue is authenticated;
+      the liveportal catalogue is not.'
+  - url: https://api-docs.rightmove.co.uk/apis
+    status: 429 / 503
+    note: Rate limited and then served a Rightmove error page during probing. The
+      SPA shell (2138 bytes) is what renders; content comes from the liveportal JSON
+      endpoints above.
+  - url: https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview
+    status: 200
+    note: SPA shell. Content confirmed via the portal page/API endpoints.
+  - url: https://api-services.rightmove.co.uk/
+    status: 404
+    note: Live production API host, no root resource.
+  - url: https://api-services.rightmove.co.uk/v2/property/commercial/branch
+    status: 401
+    note: 'CONFIRMS the documented production endpoint exists and is credential
+      gated (application/json).'
+  - url: https://api-services.rightmove.co.uk/oauth/token
+    status: 405
+    note: Method Not Allowed on GET - confirms the token endpoint exists.
+  - url: https://api-services.adftest.rightmove.com/
+    status: 404
+    note: Staging host resolves and answers.
+  - url: https://adfapi.rightmove.co.uk/
+    status: 403
+    note: Mutual-TLS gated. The RTDF specification names this host as the source of
+      the JSON Schemas; they are NOT anonymously reachable.
+  - url: https://adfapi.rightmove.co.uk/v1/property/sendpropertydetails
+    status: 403
+  - url: https://adfapi.rightmove.co.uk/v1/property/getbranchpropertylist
+    status: 403
+  - url: https://adfapi.rightmove.co.uk/swagger.json
+    status: 403
+  - url: https://adfapi.rightmove.co.uk/openapi.json
+    status: 403
+  - url: https://adfapi.rightmove.com/
+    status: 000
+    note: NXDOMAIN. The .com host cited in some third-party write-ups does not exist;
+      the live host is adfapi.rightmove.co.uk.
+  - url: https://api.rightmove.co.uk/
+    status: 404
+    note: Resolves and returns application/problem+json - an internal service host
+      with no public documentation, catalogue or discovery document.
+  - url: https://media.rightmove.co.uk/ps/pdf/guides/adf/Rightmove_Real_Time_Datafeed_Specification.pdf
+    status: 200
+    note: '935,801 bytes. "Rightmove Real Time Data Feed API Web Services
+      Specification v1.4.1", last updated November 2023. Human-readable PDF, not a
+      machine-readable contract, so not saved to openapi/.'
+  - url: https://media.rightmove.co.uk/ps/pdf/guides/adf/RTDF_EULA.pdf
+    status: 200
+    note: 246,902 bytes. The binding End User Licence Agreement.
+  - url: https://media.rightmove.co.uk/ps/pdf/guides/ADF_V4n_specification.pdf
+    status: 200
+    note: 724,397 bytes. "Rightmove Automated Data Feed Version 4.0n - New Homes",
+      last updated December 2023. Bulk XML file feed with XSD RightmoveV4n.xsd; the
+      XSD itself is not published at any probed media path (404).
+  - url: https://media.rightmove.co.uk/ps/pdf/guides/adf/Provider_Contact_Form.pdf
+    status: 200
+  - url: https://github.com/rightmove
+    status: 200
+    note: 15 public repos; no API client or spec for these APIs.
+  - url: https://plc.rightmove.co.uk/
+    status: 200
+    note: Rightmove plc investor relations site.
+  - url: https://www.rightmove.co.uk/news/house-price-index/
+    status: 200
+    note: House Price Index as editorial/PDF, not as an API or open dataset.
+  - url: https://status.rightmove.co.uk/
+    status: 000
+    note: NXDOMAIN. No public status page.
+  - url: https://certification.reso.org/
+    status: 400
+    note: RESO certification directory refused an anonymous non-browser client, so
+      the directory could not be read here. No Rightmove RESO claim was found in any
+      Rightmove-owned property or document.
+
+artifacts:
+  openapi:
+  - path: openapi/rightmove-commercial-listings-openapi.yml
+    source_url: https://api-docs.rightmove.co.uk/portals/api/sites/rightmove-pd-preprod-apigee-commercialpoc/liveportal/apis/property-feed-api-product/download_spec
+    fetched: '2026-07-26'
+    http_status: 200
+    content_type: application/octet-stream
+    bytes: 75326
+    format: OpenAPI 3.0.1 (YAML)
+    parses: true
+    validated_with: python3 yaml.safe_load
+    info_title: Commercial Listings API
+    info_version: 1.0.0
+    servers:
+    - https://api-services.adftest.rightmove.com (Staging)
+    - https://api-services.rightmove.co.uk (Production)
+    tags:
+    - Property
+    paths:
+    - GET /v2/property/commercial/{reference}
+    - PUT /v2/property/commercial/{reference}
+    - DELETE /v2/property/commercial/{reference}
+    - GET /v2/property/commercial/branch
+    component_schemas: 50
+    security_schemes:
+    - OAuth2
+    webhooks: none
+    verbatim: true
+    note: Saved exactly as served. No fields added, removed or corrected.
+  odata_metadata: []
+  note: No OData $metadata document exists for Rightmove - it publishes no OData or
+    RESO Web API surface. No JSON Schema artifacts were harvestable; the RTDF JSON
+    Schemas live behind mutual TLS on adfapi.rightmove.co.uk and the New Homes XSD
+    (RightmoveV4n.xsd) is distributed with the specification pack rather than served
+    at a public URL.
+
+sources:
+- url: https://www.rightmove.co.uk/adf.html
+  type: Documentation
+  note: Public ADF specifications page. Source for the onboarding and testing
+    process, the four documented feeds, and the adfsupport@rightmove.co.uk contact.
+- url: https://api-docs.rightmove.co.uk/
+  type: DeveloperPortal
+  note: Apigee integrated developer portal, "Rightmove APIs - Early adopters".
+- url: https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview
+  type: Documentation
+  note: Commercial Listings API overview - scope, environments, credentials, media,
+    visibility rules, error handling.
+- url: https://api-docs.rightmove.co.uk/authentication
+  type: Authentication
+  note: OAuth2 client_credentials, ClientId/ClientKey issued by Rightmove, Bearer
+    token, scopes not implemented.
+- url: https://media.rightmove.co.uk/ps/pdf/guides/adf/Rightmove_Real_Time_Datafeed_Specification.pdf
+  type: Specification
+  note: RTDF v1.4.1 - thirteen endpoints, mutual-TLS auth, Network_ID/Branch_ID/Agent_Ref.
+- url: https://media.rightmove.co.uk/ps/pdf/guides/adf/RTDF_EULA.pdf
+  type: License
+  note: Names the four-API family and the licence grant; identifies Rightmove Group
+    Limited, company number 03997679.
+- url: https://media.rightmove.co.uk/ps/pdf/guides/ADF_V4n_specification.pdf
+  type: Specification
+  note: New Homes bulk XML feed v4.0n.
+
+actions:
+  apisYmlCreated: true
+  apisListed: 2
+  specsHarvested: 1
+  readmeCreated: true
+  reason: |
+    Two real, documented HTTP APIs were captured with one verbatim machine-readable
+    contract. The New Homes ADF v4.0n is a bulk XML file feed rather than an HTTP
+    API, so it is recorded in common[] as a Specification instead of being listed as
+    an API. Nothing was inferred, and no endpoint, host, scope or spec was invented.
