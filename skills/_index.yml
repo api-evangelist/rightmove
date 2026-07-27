@@ -1,0 +1,28 @@
+generated: '2026-07-26'
+method: generated
+source: >-
+  openapi/rightmove-commercial-listings-openapi.yml plus
+  conventions/rightmove-conventions.yml, errors/rightmove-problem-types.yml and
+  rate-limits/rightmove-rate-limits.yml. Rightmove publishes no AGENTS.md and no
+  skill files of its own (searched 2026-07-26).
+note: >-
+  Every operationId below was verified verbatim against the harvested OpenAPI.
+  Skills cover the Commercial Listings API only — the Real Time Data Feed is
+  behind mutual TLS with a Rightmove-issued client certificate and has no
+  machine-readable contract to ground a skill in.
+skills:
+- file: rightmove-publish-commercial-listing.md
+  name: Publish or update a commercial property listing
+  description: Authenticate, upsert a building (with or without spaces) keyed on the agent's own reference, and confirm it landed.
+  api: openapi/rightmove-commercial-listings-openapi.yml
+  operations: [sendCommercialPropertyDetails, getCommercialPropertyDetails]
+- file: rightmove-reconcile-branch-listings.md
+  name: Reconcile a branch's commercial listings
+  description: Page through everything Rightmove holds for a branch and diff it against the CRM's own stock.
+  api: openapi/rightmove-commercial-listings-openapi.yml
+  operations: [getCommercialPropertiesByBranch, getCommercialPropertyDetails]
+- file: rightmove-withdraw-commercial-listing.md
+  name: Withdraw or remove a commercial listing
+  description: Choose between hiding a listing (status/published) and permanently deleting it, and do it safely.
+  api: openapi/rightmove-commercial-listings-openapi.yml
+  operations: [sendCommercialPropertyDetails, removeCommercialPropertyDetails, getCommercialPropertyDetails]

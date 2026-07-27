@@ -1,0 +1,160 @@
+generated: '2026-07-26'
+method: searched
+source: >-
+  Commercial Listings API overview (harvested OpenAPI info.description +
+  https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview),
+  https://api-docs.rightmove.co.uk/authentication, and the Rightmove Real Time
+  Data Feed API Web Services Specification v1.4.1 (PDF)
+summary: >-
+  Rightmove runs two unrelated interfaces with two different convention sets. The
+  Commercial Listings API is a modern REST/JSON API on Apigee — OAuth2 bearer,
+  URI-path versioning, RFC 7807-shaped problem bodies, page/size pagination and a
+  client-supplied `reference` key that makes PUT an idempotent upsert. The Real
+  Time Data Feed is an older HTTPS/JSON call-style interface behind mutual TLS
+  with its own Success/Warning/Error envelope and an `Agent_Ref` key that plays
+  the same create-versus-update role.
+apis:
+- api: Rightmove Commercial Listings API
+  spec: openapi/rightmove-commercial-listings-openapi.yml
+  base_urls:
+    production: https://api-services.rightmove.co.uk
+    staging: https://api-services.adftest.rightmove.com
+  authentication:
+    style: OAuth2 client credentials, server-to-server
+    token_endpoint: /oauth/token
+    request_header: 'Authorization: Bearer <ACCESS_TOKEN>'
+    credentials: ClientId + ClientKey issued by the Rightmove Data Feed Team, sent base64-encoded
+    scopes: not currently required or implemented
+    extra_headers:
+    - name: Rightmove-Agent-ID
+      required_on: [getCommercialPropertyDetails]
+      in: header
+    detail: authentication/rightmove-authentication.yml
+  idempotency:
+    supported: true
+    mechanism: client-supplied-key upsert
+    header: none
+    key: reference (path parameter on /v2/property/commercial/{reference})
+    method: PUT (sendCommercialPropertyDetails)
+    semantics: >-
+      "We use the reference field to determine whether a property is new or
+      existing: if a listing is uploaded with a new reference, it is treated as a
+      new listing. To update an existing listing, submit the same reference
+      value." A repeated PUT with the same reference and the same body therefore
+      converges on the same resource — 201 on first write, 200 on subsequent
+      writes — which makes safe retry possible without an Idempotency-Key header.
+    constraints:
+    - When model is BUILDING the reference in the body must equal the reference in the request URL.
+    - When model is SPACE each space reference must be unique and different from the URL reference (the building's).
+    - A BUILDING can be converted to SPACE keeping the same building reference; SPACE cannot be converted back to BUILDING (delete and re-upload).
+    caveat: >-
+      There is NO Idempotency-Key header and no replay-window/retention policy.
+      Idempotency here is resource-identity idempotency on an idempotent HTTP
+      method, not Stripe-style request-replay idempotency. DELETE is likewise
+      keyed on reference and is permanent.
+  pagination:
+    style: page-number
+    applies_to: [getCommercialPropertiesByBranch]
+    params:
+    - {name: id, in: query, required: true, description: branch id}
+    - {name: page, in: query, required: false}
+    - {name: size, in: query, required: false}
+    response_fields: PropertyAction.data.property (+ meta)
+  versioning:
+    scheme: uri-path
+    current_path: /v2
+    release_scheme: semantic versioning (major.minor.patch)
+    policy: >-
+      "Major: breaking changes (client updates required). Minor:
+      backwards-compatible enhancements. Patch: bug fixes or documentation
+      updates." Clients are explicitly told to be resilient to additional fields
+      being returned.
+    spec_version_label: property-feed-product-api-2.1.6 (portal), info.version 1.0.0 in the document
+    detail: lifecycle/rightmove-lifecycle.yml
+  error_envelope:
+    format: rfc7807-shaped
+    schema: ProblemDetail
+    media_type: application/json
+    note: >-
+      The docs call it "the JSON ProblemDetail format" and the schema carries the
+      RFC 7807 members, but responses are declared as application/json, NOT
+      application/problem+json.
+    fields: [type, title, status, detail, instance, properties]
+    extension_fields: [properties.traceId, properties.timestamp, properties.validationError]
+    detail: errors/rightmove-problem-types.yml
+  request_tracing:
+    response_field: meta.traceId (PropertyMetadata) on success; properties.traceId on errors
+    header: none published
+    timestamps: meta.requestTimestamp + meta.responseTimestamp on every successful response
+  rate_limit_signaling:
+    code: 429
+    window: 60 seconds
+    headers: not committed to (see rate-limits/rightmove-rate-limits.yml)
+    detail: rate-limits/rightmove-rate-limits.yml
+  processing_model:
+    asynchronous: true
+    note: >-
+      "Our system is asynchronous, meaning changes (including uploads and
+      removals) may take some time to reflect on the live website." A 200/201 is
+      an acceptance, not a publication guarantee. Reconcile with
+      getCommercialPropertiesByBranch.
+  media_handling:
+    model: caller-hosted public URLs (photos, floorPlans, epcs, epcGraphs, brochures, virtualTours)
+    conditional_fetch: >-
+      Rightmove issues a HEAD request and performs an ETag check before
+      downloading a media asset; asset servers are asked to return an ETag header
+      so unchanged assets are not re-fetched.
+    constraints:
+    - Brochure URLs must end in .pdf
+    - description max 200 characters
+    - order is an integer controlling display order within a media type
+    - Rightmove's media fetcher identifies as user-agent rightmove-datafeed/1.0
+  field_expansion: not supported
+  metadata_fields: not supported (no free-form metadata object)
+- api: Rightmove Real Time Data Feed API
+  base_url: https://adfapi.rightmove.co.uk/v1/property/
+  authentication:
+    style: mutual TLS (client certificate)
+    detail: >-
+      Rightmove issues a keystore containing a private key and an X.509
+      certificate in the format the integrator requests (JKS/JCEKS for Java,
+      PKCS#12 for Windows, PEM otherwise), delivered by email with the password
+      sent by SMS.
+    tls: >-
+      Section 2.1.1 of v1.4.1 states TLS 1.1 or 1.2 must be supported and SSL is
+      not supported; the document update log for v1.3.6 (26 April 2021) records
+      that support for TLS 1.0 and 1.1 was removed. Treat TLS 1.2 as the floor.
+    identifiers: [Network_ID, Branch_ID]
+    ip_allowlisting: >-
+      Not recommended by Rightmove — outbound IPs can change without notice.
+      Media servers may allowlist the user-agent rightmove-datafeed/1.0 instead.
+  idempotency:
+    supported: true
+    mechanism: client-supplied-key upsert
+    key: Agent_Ref (with Network_ID + Branch_ID scope)
+    semantics: >-
+      Agent_Ref keys create-versus-update for SendProperty/OverseasSendProperty;
+      resending the same Agent_Ref updates the same listing. Responses echo
+      Change_Type and the assigned Rightmove_ID.
+    header: none
+  encoding: UTF-8; JSON only (XML support removed in spec v1.3.5, November 2019)
+  error_envelope:
+    format: proprietary Success/Warning/Error envelope
+    fields: [Request_ID, Message, Success, Request_Timestamp, Response_Timestamp]
+    property_block: [Agent_Ref, Rightmove_ID, Rightmove_URL, Change_Type]
+    errors: [Error_Code, Error_Description, Error_Value]
+    warnings: [Warning_Code, Warning_Description, Warning_Value]
+    detail: errors/rightmove-rtdf-error-codes.yml
+  reconciliation: >-
+    Poll-based. GetBranchPropertyList returns the branch's current listings for
+    comparison against local state; there are no webhooks and no event stream.
+  versioning:
+    scheme: uri-path
+    current_path: /v1
+    spec_version: v1.4.1 (last updated November 2023)
+cross_links:
+  authentication: authentication/rightmove-authentication.yml
+  errors: [errors/rightmove-problem-types.yml, errors/rightmove-rtdf-error-codes.yml]
+  lifecycle: lifecycle/rightmove-lifecycle.yml
+  rate_limits: rate-limits/rightmove-rate-limits.yml
+  scopes: scopes/rightmove-scopes.yml

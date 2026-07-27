@@ -1,0 +1,121 @@
+generated: '2026-07-26'
+method: searched
+source: >-
+  Commercial Listings API "Changelog" section published in the harvested OpenAPI
+  info.description
+  (openapi/rightmove-commercial-listings-openapi.yml, served from
+  https://api-docs.rightmove.co.uk/portals/api/sites/rightmove-pd-preprod-apigee-commercialpoc/liveportal/apis/property-feed-api-product/download_spec)
+  and the document update log in the Real Time Data Feed API Web Services
+  Specification v1.4.1
+summary: >-
+  Rightmove has no changelog web page. The Commercial Listings API instead ships
+  a full dated changelog INSIDE its OpenAPI description — 26 releases from v0.1.0
+  (2025-02-21) to v2.1.6 (2026-06-23) — which is the real, provider-published
+  change history. The RTDF carries a coarser document update log in its PDF
+  specification. Recent windows are captured below; the live spec remains the
+  source of truth.
+apis:
+- api: Rightmove Commercial Listings API
+  scheme: semver
+  current_version: 2.1.6
+  current_version_date: '2026-06-23'
+  entries_captured: 12
+  entries:
+  - version: 2.1.6
+    date: '2026-06-23'
+    breaking: false
+    additions:
+    - Added subtype BUSINESS_PARK to the Offices property classification.
+    - Added subtype SHOWROOM to the Retail property classification.
+    - Added subtype TAKEAWAY to the Leisure And Hospitality property classification.
+    - Added subtype WORKSHOP to the Industrial and Logistics property classification.
+  - version: 2.1.5
+    date: '2026-06-22'
+    breaking: false
+    highlights: [keyFeatures is now optional at building level.]
+  - version: 2.1.4
+    date: '2026-05-22'
+    breaking: true
+    highlights:
+    - 'Schemas renamed to separate building-level from space-level: Pricing -> SpacePricing, Sizing -> SpaceSizing, PriceDisplayQualifier -> SpacePriceDisplayQualifier.'
+    - Fixed CommercialPropertyWithSpaces so building-level pricing references BuildingPricing.
+    - Made pricing/sizing validation rules explicit (BuildingPricing mandatory at building level; SpaceSizing mandatory per space).
+  - version: 2.1.3
+    date: '2026-01-07'
+    breaking: false
+    additions: ['Optional `auction` field added to the building object (SALES listings only, defaults to false).']
+  - version: 2.1.2
+    date: '2025-12-03'
+    breaking: true
+    highlights:
+    - INDUSTRIAL_DEVELOPMENT removed from LAND_AND_DEVELOPMENT; existing properties remapped to COMMERCIAL_DEVELOPMENT.
+    - AEROSPACE subtype removed from OTHER.
+    - FARM moved from OTHER to LAND_AND_DEVELOPMENT; WOODLAND added.
+    - Added DENTAL_CARE, PHARMACY and CARE_HOME_FACILITY to OTHER.
+  - version: 2.1.1
+    date: '2025-11-12'
+    breaking: false
+    additions:
+    - Added CAMPSITE_HOLIDAY_VILLAGE and COMM_GUEST_HOUSE to Leisure And Hospitality.
+    - Added POST_OFFICE and CONVENIENCE_STORE to Retail.
+  - version: 2.1.0
+    date: '2025-11-07'
+    breaking: false
+    highlights:
+    - 'Restructured payloads: building fields go in the Building object, space fields in the Space object; Space is now optional.'
+    - 'New PUT schemas: CommercialPropertyBuildingOnly and CommercialPropertyWithSpaces.'
+    - 'Added building fields: status, availableDate, businessRates, serviceCharge, isRentAllInclusive, letType, letContractLength, condition.'
+    - Announced deprecation of constructionType (Building) and model (Space).
+    - Constrained the PriceDisplayQualifier enum per level (building level adds GUIDE_PRICE, OFFERS_IN_EXCESS_OF, OFFERS_IN_REGION_OF, FROM).
+  - version: 2.0.3
+    date: '2025-11-20'
+    breaking: false
+    highlights: [Updated Pricing description.]
+  - version: 2.0.2
+    date: '2025-10-20'
+    breaking: false
+    additions:
+    - Ability to change a property's model from BUILDING to SPACE.
+    - Ability to provide pricing information at the building level.
+  - version: 2.0.1
+    date: '2025-10-10'
+    breaking: false
+    additions: [showStreetView field added to the streetView object.]
+  - version: 2.0.0
+    date: '2025-10-09'
+    breaking: true
+    highlights: [Removed COMMERCIAL and STUDENT values from the LetType field.]
+  - version: 1.2.3
+    date: '2025-10-08'
+    breaking: false
+    highlights: [Updated documentation for the GET endpoint; model change BUILDING -> SPACE supported from this version.]
+  earlier_versions_note: >-
+    The embedded changelog continues back through v1.2.2 (2025-08-06) to v0.1.0
+    (2025-02-21) — including the v1.1.0 release that added the retrieve-by-branch
+    endpoint (2025-05-08) and the v1.0.0 general release (2025-04-16). See the
+    live spec for the full history.
+- api: Rightmove Real Time Data Feed API
+  scheme: document-version
+  current_version: 1.4.1
+  current_version_date: '2023-11-30'
+  entries:
+  - version: 1.4.1
+    date: '2023-11-30'
+    breaking: false
+    additions: ['New SendProperty fields: Utilities (electricity, water, sewerage, heating, broadband), Parking, Restrictions, Flood Risk, Accessibility.']
+  - version: 1.4.0
+    date: '2022-04-11'
+    breaking: false
+    additions: [Shared Ownership and percentage of share, current ground rent, ground rent review period, annual service charge, Council Tax band and exemption (plus Northern Ireland rates).]
+    highlights: [Deprecated Housing_Benefit_Considered.]
+  - version: 1.3.6
+    date: '2021-04-26'
+    breaking: true
+    highlights:
+    - Removed support for GetBranchPhoneLeads and GetBrandPhoneLeads.
+    - Removed deprecated fields DPA_flag, Principal email and renter application url.
+    - Removed support for TLS 1.0 and 1.1.
+  - version: 1.3.5
+    date: '2019-11-05'
+    breaking: true
+    highlights: [Removed XML support.]

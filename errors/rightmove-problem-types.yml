@@ -1,0 +1,81 @@
+generated: '2026-07-26'
+method: derived
+source: openapi/rightmove-commercial-listings-openapi.yml
+enriched_from: >-
+  Commercial Listings API overview, "Error Handling / Problem Details" section
+  (https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview)
+api: Rightmove Commercial Listings API
+format: rfc7807
+format_note: >-
+  The ProblemDetail schema carries the RFC 7807 members (type, title, status,
+  detail, instance) plus a `properties` extension object, and the docs call it
+  "the JSON ProblemDetail format". Responses are declared with media type
+  application/json rather than application/problem+json, so this is RFC
+  7807-shaped rather than fully RFC 7807/9457 compliant on the wire. No registry
+  of concrete `type` URIs is published — the URI values are returned at runtime,
+  not documented, so no problem-type catalogue can be listed without credentials.
+envelope:
+  schema: '#/components/schemas/ProblemDetail'
+  fields:
+  - {name: type, description: A URI identifier for the problem type.}
+  - {name: title, description: A short, human-readable summary of the problem type.}
+  - {name: status, description: The HTTP status code.}
+  - {name: detail, description: A human-readable explanation specific to this occurrence.}
+  - {name: instance, description: A URI reference identifying the specific occurrence.}
+  - {name: properties, description: Optional object with additional detail.}
+  extensions:
+  - {name: properties.traceId, description: Unique request identifier, quote this to Rightmove support.}
+  - {name: properties.timestamp, description: The time the error occurred.}
+  - {name: properties.validationError, description: 'On 400: specifics of the validation failure, typically field + message.'}
+classes:
+  '4xx': Client error — malformed syntax or validation (400), missing/invalid credentials (401), insufficient permissions (403), unknown resource (404), quota exceeded (429).
+  '5xx': Server error — contact the Rightmove Data Feed Team if 500/502/503 persist.
+problems:
+- status: 400
+  title: Validation error
+  problem_body: true
+  description: This response will be presented when a validation error has occurred.
+  remediation: Inspect properties.validationError for the offending field and message; correct and resend the same reference.
+  source_operations: [getCommercialPropertyDetails, sendCommercialPropertyDetails]
+- status: 401
+  title: Unauthorised
+  problem_body: false
+  description: This response will be presented when the attempt to call is unauthorised.
+  remediation: >-
+    Re-request an access token from /oauth/token with the ClientId/ClientKey
+    issued by the Rightmove Data Feed Team; send it as an Authorization Bearer
+    header.
+  source_operations: [getCommercialPropertyDetails, sendCommercialPropertyDetails, removeCommercialPropertyDetails, getCommercialPropertiesByBranch]
+- status: 403
+  title: Forbidden
+  problem_body: false
+  description: This response will be presented when the attempt to call is forbidden.
+  remediation: The credentials are valid but not entitled to this branch or property. Confirm the agent/branch entitlement with adfsupport@rightmove.co.uk.
+  source_operations: [getCommercialPropertyDetails, sendCommercialPropertyDetails, removeCommercialPropertyDetails, getCommercialPropertiesByBranch]
+- status: 404
+  title: Property not found
+  problem_body: true
+  description: This response will be presented when the property is not found.
+  remediation: The reference does not resolve to a property for this agent. Do not retry; reconcile with getCommercialPropertiesByBranch.
+  source_operations: [removeCommercialPropertyDetails]
+- status: 429
+  title: Quota exceeded
+  problem_body: false
+  description: This response will be presented when your quota has been exceeded.
+  remediation: Back off exponentially. The quota window resets every 60 seconds; the quota value is not published and varies by environment and endpoint.
+  source_operations: [getCommercialPropertyDetails, sendCommercialPropertyDetails, removeCommercialPropertyDetails, getCommercialPropertiesByBranch]
+- status: 502
+  title: Bad gateway
+  problem_body: true
+  description: This response will be presented when an unexpected error has occurred.
+  remediation: Retry with backoff; PUT and DELETE are keyed on the client-supplied reference so a retry is safe.
+  source_operations: [getCommercialPropertyDetails, sendCommercialPropertyDetails, removeCommercialPropertyDetails, getCommercialPropertiesByBranch]
+- status: 503
+  title: Service unavailable
+  problem_body: true
+  description: This response will be presented when an unexpected internal error has occurred.
+  remediation: Retry with backoff; contact adfsupport@rightmove.co.uk if it persists.
+  source_operations: [getCommercialPropertyDetails, sendCommercialPropertyDetails, removeCommercialPropertyDetails, getCommercialPropertiesByBranch]
+notes:
+- No 500 response is declared in the OpenAPI although the prose mentions it; 502 and 503 are the declared server-error codes.
+- No error-code registry (string or numeric) is published for this API; the discriminator is the HTTP status plus the runtime `type` URI.

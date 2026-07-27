@@ -1,0 +1,106 @@
+generated: '2026-07-26'
+method: searched
+source: >-
+  npm registry search, PyPI, Packagist, RubyGems, NuGet, pkg.go.dev and
+  github.com/rightmove, probed 2026-07-26
+summary: >-
+  Rightmove publishes NO first-party client library for either the Commercial
+  Listings API or the Real Time Data Feed. github.com/rightmove holds 15 public
+  repositories, all of them hiring/interview exercises (remote-java-test,
+  Code-Challenge-*, angular-fed-test) plus rightmove.github.io — no SDK, no
+  proto, no spec. Every package below is COMMUNITY-maintained and unaffiliated
+  with Rightmove Group Limited; several are HTML scrapers rather than clients of
+  the documented, credential-gated APIs. No `official: true` package exists, so
+  no SDKs pointer is wired for this provider.
+official_sdks: none
+packages:
+- language: javascript
+  registry: npm
+  name: rightmove-rtdf
+  url: https://www.npmjs.com/package/rightmove-rtdf
+  install: npm install rightmove-rtdf
+  publisher: ijxy
+  description: Client for the Rightmove Real Time Data Feed (RTDF) API.
+  kind: community-client
+  official: false
+- language: javascript
+  registry: npm
+  name: rightmove-mcp-server
+  url: https://www.npmjs.com/package/rightmove-mcp-server
+  install: npm install rightmove-mcp-server
+  publisher: mounty
+  description: >-
+    Third-party MCP server for Rightmove.co.uk property search. Not a Rightmove
+    product and not built on the documented APIs — Rightmove publishes no public
+    read/search API.
+  kind: community-mcp
+  official: false
+- language: javascript
+  registry: npm
+  name: rightmove-scraper
+  url: https://www.npmjs.com/package/rightmove-scraper
+  publisher: isnit0
+  kind: community-scraper
+  official: false
+- language: javascript
+  registry: npm
+  name: blm-parser
+  url: https://www.npmjs.com/package/blm-parser
+  publisher: bam4564
+  description: Parser for .blm files, the legacy Rightmove bulk listing file format.
+  kind: community-format-parser
+  official: false
+- language: php
+  registry: packagist
+  name: frozensheep/rightmove-adf
+  url: https://packagist.org/packages/frozensheep/rightmove-adf
+  install: composer require frozensheep/rightmove-adf
+  description: PHP library for the Rightmove Real Time Property Datafeed (ADF).
+  kind: community-client
+  official: false
+- language: php
+  registry: packagist
+  name: jedkirby/rightmove-adf
+  url: https://packagist.org/packages/jedkirby/rightmove-adf
+  kind: community-client
+  official: false
+- language: php
+  registry: packagist
+  name: giwrgos88/rightmove-adf
+  url: https://packagist.org/packages/giwrgos88/rightmove-adf
+  kind: community-client
+  official: false
+- language: php
+  registry: packagist
+  name: matt-cannon/blm
+  url: https://packagist.org/packages/matt-cannon/blm
+  kind: community-format-parser
+  official: false
+- language: python
+  registry: pypi
+  name: rightmove-webscraper
+  url: https://pypi.org/project/rightmove-webscraper/
+  install: pip install rightmove-webscraper
+  kind: community-scraper
+  official: false
+- language: ruby
+  registry: rubygems
+  name: rightmove_blm
+  url: https://rubygems.org/gems/rightmove_blm
+  kind: community-format-parser
+  official: false
+- language: dotnet
+  registry: nuget
+  name: Proptech.Rightmove
+  url: https://www.nuget.org/packages/Proptech.Rightmove
+  authors: Khaled Elmahdi
+  kind: community-client
+  official: false
+registries_probed:
+- {registry: npm, query: rightmove, status: 200, first_party_hits: 0}
+- {registry: pypi, query: rightmove, status: 404, first_party_hits: 0}
+- {registry: pypi, query: rightmove-api, status: 404, first_party_hits: 0}
+- {registry: packagist, query: rightmove, status: 200, first_party_hits: 0}
+- {registry: rubygems, query: rightmove, status: 200, first_party_hits: 0}
+- {registry: nuget, query: rightmove, status: 200, first_party_hits: 0}
+- {registry: github, org: rightmove, status: 200, repos: 15, first_party_hits: 0}

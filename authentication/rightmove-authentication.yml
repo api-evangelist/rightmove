@@ -1,0 +1,90 @@
+generated: '2026-07-26'
+method: searched
+source: openapi/rightmove-commercial-listings-openapi.yml
+docs:
+- https://api-docs.rightmove.co.uk/authentication
+- https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview
+- https://media.rightmove.co.uk/ps/pdf/guides/adf/Rightmove_Real_Time_Datafeed_Specification.pdf
+summary:
+  types: [oauth2, mutualTLS]
+  oauth2_flows: [clientCredentials]
+  api_key_in: []
+  gate: >-
+    Every credential for every environment — test and production, both APIs — is
+    issued case by case by the Rightmove Data Feed Team. Nothing is self-serve.
+schemes:
+- name: OAuth2
+  api: Rightmove Commercial Listings API
+  type: oauth2
+  documented_flow: clientCredentials
+  token_url: /oauth/token
+  token_url_examples:
+  - https://api-services.rightmove.co.uk/oauth/token
+  - https://api-services.adftest.rightmove.com/oauth/token
+  credentials: ClientId + ClientKey issued by the Rightmove Data Feed Team, presented base64-encoded
+  request_header: 'Authorization: Bearer <ACCESS_TOKEN>'
+  scopes_implemented: false
+  scopes_note: Scopes "are not currently required or implemented" per the portal authentication page.
+  applied_to: all four operations carry a security requirement referencing this scheme
+  declared_in_spec:
+    type: oauth2
+    flows: [implicit]
+    authorizationUrl: /oauth/token
+    scopes: {}
+  defect: >-
+    The published securityScheme declares an `implicit` flow with an
+    authorizationUrl of /oauth/token and an empty scopes map, which contradicts
+    the prose and the authentication page — both document the client_credentials
+    grant with a token endpoint. There is also no top-level `security` in the
+    document. Recorded as served; the correction is captured in
+    overlays/rightmove-commercial-listings-overlay.yaml rather than by editing the
+    harvested spec.
+  additional_headers:
+  - name: Rightmove-Agent-ID
+    in: header
+    required: true
+    operations: [getCommercialPropertyDetails]
+  sources:
+  - openapi/rightmove-commercial-listings-openapi.yml
+  - https://api-docs.rightmove.co.uk/authentication
+- name: MutualTLS
+  api: Rightmove Real Time Data Feed API
+  type: mutualTLS
+  documented_in: RTDF API Web Services Specification v1.4.1, section 2 "Authentication and Security"
+  mechanism: >-
+    Rightmove issues a keystore containing a private key and an X.509 client
+    certificate. Format is chosen by the integrator — JKS or JCEKS for Java,
+    PKCS#12 for Windows applications, PEM for other languages.
+  delivery: keystore emailed; password sent separately by SMS to a supplied mobile number
+  certificate_providers: >-
+    Only certificate providers on Rightmove's supported list may be used; the list
+    is obtained from the Data Feed Team.
+  tls:
+    documented_minimum: >-
+      TLS 1.1 or 1.2 (section 2.1.1); TLS 1.0 and 1.1 support was removed in spec
+      v1.3.6, so treat 1.2 as the floor.
+    ssl: not supported
+    media_servers: integrator media servers must support TLS 1.2 or Rightmove cannot download images
+  request_identifiers: [Network_ID, Branch_ID, Agent_Ref]
+  outbound_user_agent: rightmove-datafeed/1.0
+  ip_allowlisting: >-
+    Not recommended — Rightmove's outbound IPs can change without notice.
+    Allowlist the user-agent instead, or request the current IPs from the Data
+    Feed Team.
+  anonymous_reachability:
+    probed: '2026-07-26'
+    status: 403
+    note: every path on adfapi.rightmove.co.uk refuses anonymous callers
+  sources:
+  - https://media.rightmove.co.uk/ps/pdf/guides/adf/Rightmove_Real_Time_Datafeed_Specification.pdf
+openid_connect:
+  supported: false
+  evidence: No /.well-known/openid-configuration on any host (see well-known/rightmove-well-known.yml).
+onboarding:
+  contact: adfsupport@rightmove.co.uk
+  classification: application-approval
+  requirements:
+  - Accept the RTDF End User Licence Agreement with Rightmove Group Limited.
+  - Submit the ADF Provider Contact Form.
+  - Complete a supervised testing cycle before live credentials are released.
+  - 'In practice: act for a Rightmove member agent — RTDF calls require a Rightmove-issued Network_ID and Branch_ID.'

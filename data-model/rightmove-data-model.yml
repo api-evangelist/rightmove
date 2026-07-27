@@ -1,0 +1,201 @@
+generated: '2026-07-26'
+method: derived
+source: openapi/rightmove-commercial-listings-openapi.yml
+summary: >-
+  The Commercial Listings API models one aggregate: a commercial PROPERTY, which
+  is either a standalone BUILDING or a BUILDING that contains up to 50 SPACES.
+  Everything else in the 50-schema component set hangs off those two entities as
+  a value object (pricing, sizing, location, media, classification) or an
+  enumeration. There is no customer, order, transaction or user entity — the API
+  is a listings-publishing surface, not a marketplace API. The Real Time Data
+  Feed models the same shape for residential/overseas stock but its JSON Schemas
+  are behind mutual TLS and could not be harvested.
+identity:
+  primary_key: reference
+  key_type: agent-supplied string, unique within the agent/branch scope
+  key_note: >-
+    The building reference is supplied in the request path; each space carries its
+    own reference which must be unique and different from the building's. There
+    is no Rightmove-issued surrogate id in the Commercial payload (the RTDF
+    returns a Rightmove_ID and Rightmove_URL on write).
+  external_identifiers:
+  - {field: location.uprn, standard: Unique Property Reference Number (Ordnance Survey / GeoPlace), type: int64}
+  - {field: building.agentId, description: Rightmove branch/agent identifier the listing belongs to}
+entities:
+- name: CommercialPropertyBuildingOnly
+  kind: request-root
+  description: PUT payload for a standalone building with no marketed spaces.
+  relationships:
+  - {type: has_one, target: BuildingOnly, via: building}
+- name: CommercialPropertyWithSpaces
+  kind: request-root
+  description: PUT payload for a building that markets individual floors/units.
+  relationships:
+  - {type: has_one, target: BuildingWithSpaces, via: building}
+- name: BuildingOnly
+  kind: entity
+  key_fields: [description, agentId, summary, floors, transactionType, yearBuilt, yearRenovated, keyFeatures, tenureUnexpiredYears, listedBuilding, businessForSale, auction, published, parkingSpaces, availableDate, serviceCharge, businessRates, letContractLength, isRentAllInclusive]
+  relationships:
+  - {type: has_one, target: BuildingPricing, via: pricing}
+  - {type: has_one, target: BuildingSizing, via: sizing}
+  - {type: has_one, target: Location, via: location}
+  - {type: has_one, target: Owner, via: owner}
+  - {type: has_one, target: Media, via: media}
+  - {type: has_one, target: PropertyClassification, via: primaryPropertyClassification}
+  - {type: has_many, target: PropertyClassification, via: secondaryPropertyClassifications}
+  - {type: has_many, target: Amenity, via: amenities}
+  - {type: has_many, target: UseClass, via: useClasses}
+  - {type: has_one, target: Environment, via: environment}
+  - {type: has_one, target: PlanningPermission, via: planningPermission}
+  - {type: has_one, target: Status, via: status, kind: enum}
+  - {type: has_one, target: TransactionType, via: transactionType, kind: enum}
+  - {type: has_one, target: TenureType, via: tenureType, kind: enum}
+  - {type: has_one, target: LetType, via: letType, kind: enum}
+  - {type: has_one, target: Condition, via: condition, kind: enum}
+- name: BuildingWithSpaces
+  kind: entity
+  description: >-
+    Same field set as BuildingOnly plus the marketed spaces, minus the
+    building-level `auction` flag.
+  relationships:
+  - {type: has_many, target: Space, via: spaces, cardinality: 'up to 50 (enforced from v1.1.6)'}
+  inherits_relationships_from: BuildingOnly
+- name: Space
+  kind: entity
+  key_fields: [reference, name, floorIdentifier, description, keyFeatures, availableDate, serviceCharge, businessRates, letContractLength, isRentAllInclusive, published, order]
+  relationships:
+  - {type: belongs_to, target: BuildingWithSpaces, via: spaces}
+  - {type: has_one, target: SpacePricing, via: pricing}
+  - {type: has_one, target: SpaceSizing, via: sizing, required: true}
+  - {type: has_one, target: Media, via: media}
+  - {type: has_one, target: PropertyClassification, via: primaryPropertyClassification}
+  - {type: has_many, target: PropertyClassification, via: secondaryPropertyClassifications}
+  - {type: has_one, target: Status, via: status, kind: enum}
+  - {type: has_one, target: LetType, via: letType, kind: enum}
+  - {type: has_one, target: Condition, via: condition, kind: enum}
+- name: PropertyClassification
+  kind: value-object
+  description: >-
+    Polymorphic classification: a oneOf over the six sector models, discriminated
+    by the required `subType` property.
+  discriminator: subType
+  relationships:
+  - {type: has_one, target: SubType, via: subType, kind: enum, required: true}
+  - {type: one_of, target: Offices}
+  - {type: one_of, target: IndustrialAndLogistics}
+  - {type: one_of, target: LandAndDevelopment}
+  - {type: one_of, target: LeisureAndHospitality}
+  - {type: one_of, target: Retail}
+  - {type: one_of, target: Other}
+- name: Offices
+  kind: value-object
+  key_fields: [desks, pricePerDeskPerMonth]
+  relationships:
+  - {type: has_one, target: Capacity, via: capacity}
+  - {type: has_one, target: GradeOfSpaceType, via: gradeOfSpaceType, kind: enum}
+- name: IndustrialAndLogistics
+  kind: value-object
+  key_fields: [clearHeight, driveInBays, dockLevelers, powerSupplyKiloVoltAmperes, floorLoadingCapacityKiloNewtons, yardDepthMetres]
+  relationships:
+  - {type: has_one, target: ClearHeightUnit, via: clearHeightUnit, kind: enum}
+- name: BuildingPricing
+  kind: value-object
+  key_fields: [price]
+  required_at: building level
+  relationships:
+  - {type: has_one, target: BuildingPriceDisplayQualifier, via: displayQualifier, kind: enum}
+  - {type: has_one, target: RentFrequency, via: frequency, kind: enum}
+  - {type: has_one, target: RentObligation, via: rentObligation, kind: enum}
+- name: SpacePricing
+  kind: value-object
+  key_fields: [price]
+  required_at: optional at space level
+  relationships:
+  - {type: has_one, target: SpacePriceDisplayQualifier, via: displayQualifier, kind: enum}
+  - {type: has_one, target: RentFrequency, via: frequency, kind: enum}
+  - {type: has_one, target: RentObligation, via: rentObligation, kind: enum}
+- name: BuildingSizing
+  kind: value-object
+  key_fields: [size, minSize, maxSize]
+  relationships:
+  - {type: has_one, target: AreaSizeUnit, via: unit, kind: enum}
+  measurement_types: [GEA, GIA, NIA, IPMS1, IPMS2, IPMS3_1, IPMS3_2]
+- name: SpaceSizing
+  kind: value-object
+  key_fields: [size]
+  required: true
+  relationships:
+  - {type: has_one, target: AreaSizeUnit, via: unit, kind: enum}
+  measurement_types: [GEA, GIA, NIA, IPMS1, IPMS2, IPMS3_1, IPMS3_2]
+- name: Location
+  kind: value-object
+  key_fields: [displayAddress, postcode, buildingIdentifier, latitude, longitude, uprn, showMap]
+  relationships:
+  - {type: has_one, target: StreetView, via: streetView}
+- name: Media
+  kind: value-object
+  relationships:
+  - {type: has_many, target: MediaAsset, via: photos}
+  - {type: has_many, target: MediaAsset, via: floorPlans}
+  - {type: has_many, target: MediaAsset, via: epcs}
+  - {type: has_many, target: MediaAsset, via: epcGraphs}
+  - {type: has_many, target: MediaAsset, via: brochures}
+  - {type: has_many, target: MediaAsset, via: virtualTours}
+- name: MediaAsset
+  kind: value-object
+  key_fields: [url, description, order]
+  note: url must be publicly reachable; brochure URLs must end in .pdf; Rightmove HEADs the URL and honours ETag.
+- name: Environment
+  kind: value-object
+  key_fields: [environmentalDescription, breeamRating, epcRating]
+- name: RemoveCommercialProperty
+  kind: request-root
+  key_fields: [agentId, removalReason]
+  description: DELETE body — removal is permanent and cascades to associated listings.
+- name: PropertyAction
+  kind: response-root
+  description: GET response envelope.
+  relationships:
+  - {type: has_one, target: PropertyMetadata, via: meta}
+  - {type: has_one, target: PropertyData, via: data}
+- name: PropertySaveAction
+  kind: response-root
+  description: PUT response envelope (201 create / 200 update).
+  relationships:
+  - {type: has_one, target: PropertyMetadata, via: meta}
+  - {type: has_one, target: PropertySaveData, via: data}
+- name: PropertyMetadata
+  kind: value-object
+  key_fields: [requestTimestamp, responseTimestamp, traceId]
+- name: PropertySaveData
+  kind: value-object
+  relationships:
+  - {type: has_one, target: PropertyLinks, via: links}
+- name: PropertyLinks
+  kind: value-object
+  relationships:
+  - {type: has_one, target: PropertySelfLinks, via: self}
+  - {type: has_one, target: PropertyDisplayLinks, via: display}
+- name: PropertyData
+  kind: value-object
+  relationships:
+  - {type: has_one, target: PropertyReference, via: property}
+- name: ProblemDetail
+  kind: error
+  key_fields: [type, title, status, detail, instance, properties]
+  detail: errors/rightmove-problem-types.yml
+enumerations:
+  Status: [AVAILABLE, SOLD_STC, SOLD_STCM, RESERVED, LET_AGREED, UNDER_OFFER]
+  TransactionType: [SALES, LETTINGS]
+  measurementType: [GEA, GIA, NIA, IPMS1, IPMS2, IPMS3_1, IPMS3_2]
+  others: [Amenity, AreaSizeUnit, ClearHeightUnit, Condition, GradeOfSpaceType, LetType, PlanningPermission, RentFrequency, RentObligation, SubType, TenureType, UseClass, BuildingPriceDisplayQualifier, SpacePriceDisplayQualifier]
+counts:
+  component_schemas: 50
+  entities: 6
+  value_objects: 20
+  enumerations: 17
+lifecycle_rules:
+- A new `reference` creates a listing; the same `reference` updates it.
+- A BUILDING may be converted to SPACE keeping the building reference; the reverse requires delete and re-upload.
+- Unpublishing a building cascades published=false to all of its spaces; republishing the building does NOT republish the spaces, which must each be set published=true.
+- DELETE is permanent and removes associated listings.

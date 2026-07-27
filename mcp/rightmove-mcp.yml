@@ -1,0 +1,73 @@
+generated: '2026-07-26'
+method: derived
+source: openapi/rightmove-commercial-listings-openapi.yml
+status: candidate
+summary: >-
+  Rightmove publishes NO official Model Context Protocol server. No mcp.* host,
+  no @modelcontextprotocol package, no MCP entry in the Apigee portal catalogue
+  and no mention of agents or MCP anywhere in the developer surface (searched
+  2026-07-26). A third-party npm package `rightmove-mcp-server` exists but is
+  unaffiliated with Rightmove and is built on scraping the consumer website, not
+  on the documented APIs — Rightmove exposes no public read/search API for
+  listings. The tool set below is DERIVED from the four Commercial Listings API
+  operations as a proposal for an agent-facing surface; it is not published by
+  Rightmove and no MCPServer pointer is wired for this provider.
+server: null
+transport: null
+url: null
+official: false
+auth:
+  type: oauth2
+  flow: client_credentials
+  token_endpoint: /oauth/token
+  header: 'Authorization: Bearer <ACCESS_TOKEN>'
+  note: >-
+    Credentials are issued case by case by the Rightmove Data Feed Team; any MCP
+    server would inherit that gate and could not be used anonymously.
+candidate_tools:
+- name: get_commercial_property
+  description: Retrieve a commercial property listing by its agent-supplied reference.
+  maps_to: GET /v2/property/commercial/{reference}
+  source_operation: openapi/rightmove-commercial-listings-openapi.yml#getCommercialPropertyDetails
+  action_class: connected
+  consequence: read
+- name: list_branch_commercial_properties
+  description: Retrieve the paged list of commercial properties for a branch, for reconciliation.
+  maps_to: GET /v2/property/commercial/branch
+  source_operation: openapi/rightmove-commercial-listings-openapi.yml#getCommercialPropertiesByBranch
+  action_class: connected
+  consequence: read
+- name: upsert_commercial_property
+  description: >-
+    Create or update a commercial property listing (building only, or building
+    with spaces). Idempotent on the client-supplied reference.
+  maps_to: PUT /v2/property/commercial/{reference}
+  source_operation: openapi/rightmove-commercial-listings-openapi.yml#sendCommercialPropertyDetails
+  action_class: acting
+  consequence: write
+  note: Publishes to a public consumer portal — human review is appropriate before an agent calls this.
+- name: remove_commercial_property
+  description: Permanently remove a commercial property listing, with a removal reason.
+  maps_to: DELETE /v2/property/commercial/{reference}
+  source_operation: openapi/rightmove-commercial-listings-openapi.yml#removeCommercialPropertyDetails
+  action_class: acting
+  consequence: physical
+  note: Irreversible; also removes associated listings.
+not_covered:
+  real_time_data_feed: >-
+    The 13 RTDF calls are behind mutual TLS with a Rightmove-issued client
+    certificate, which no hosted MCP server could hold on a user's behalf without
+    that user's own keystore.
+third_party:
+- name: rightmove-mcp-server
+  registry: npm
+  url: https://www.npmjs.com/package/rightmove-mcp-server
+  publisher: mounty
+  official: false
+  note: MCP server for Rightmove.co.uk property search; not a Rightmove product, not built on the documented APIs.
+crosswalk: null
+crosswalk_note: >-
+  No tool crosswalk is emitted. A crosswalk binds a PUBLISHED MCP (or GraphQL)
+  surface to the REST contract; here the only tool list is derived from that same
+  contract, so the mapping would be circular. Emit one if Rightmove ever ships a
+  real MCP server.

@@ -1,0 +1,52 @@
+generated: '2026-07-26'
+method: searched
+source: live probes of every Rightmove host in apis.yml and the OpenAPI servers[]
+summary: >-
+  Rightmove publishes NO /.well-known/ discovery surface. Every path below was
+  probed anonymously on 2026-07-26. The two API hosts return hard 404s with an
+  empty body; www.rightmove.co.uk and the Apigee portal host return HTTP 200
+  with an HTML shell (a branded soft-404 on www, the Angular SPA index on
+  api-docs), which is NOT a well-known document — each response was
+  content-checked. No security.txt, no OpenID Connect discovery, no RFC 8414
+  authorization-server metadata, no RFC 9727 api-catalog, no ai-plugin.json.
+  Nothing was saved because nothing was served; this is a recorded absence, not
+  a probing gap.
+hosts:
+- host: https://api-services.rightmove.co.uk
+  role: production API (Commercial Listings)
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+- host: https://api-services.adftest.rightmove.com
+  role: staging API (Commercial Listings)
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+- host: https://api-docs.rightmove.co.uk
+  role: Apigee integrated developer portal
+  note: >-
+    Returns HTTP 200 text/html (2138 bytes, the Angular SPA index) for every
+    unknown path, including /llms.txt. Soft-200, not a document. The host also
+    rate-limits aggressively (nginx 429) under sequential probing.
+  documents:
+  - {path: /.well-known/security.txt, status: 200, content_type: text/html, document: false}
+  - {path: /.well-known/openid-configuration, status: 200, content_type: text/html, document: false}
+  - {path: /llms.txt, status: 200, content_type: text/html, document: false}
+- host: https://www.rightmove.co.uk
+  role: consumer website
+  note: Branded soft-404 HTML page (HTTP 200) for unknown paths.
+  documents:
+  - {path: /.well-known/security.txt, status: 200, content_type: text/html, document: false}
+  - {path: /.well-known/openid-configuration, status: 200, content_type: text/html, document: false}
+- host: https://adfapi.rightmove.co.uk
+  role: Real Time Data Feed API (mutual TLS)
+  note: Returns 403 to every anonymous request, including /.well-known/ paths.
+  documents:
+  - {path: /.well-known/security.txt, status: 403}
+documents_saved: []

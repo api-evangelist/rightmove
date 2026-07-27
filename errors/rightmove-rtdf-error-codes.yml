@@ -1,0 +1,73 @@
+generated: '2026-07-26'
+method: searched
+source: >-
+  Rightmove Real Time Data Feed API Web Services Specification v1.4.1, section 8
+  "Responses - Success, Warning and Error"
+  (https://media.rightmove.co.uk/ps/pdf/guides/adf/Rightmove_Real_Time_Datafeed_Specification.pdf)
+api: Rightmove Real Time Data Feed API
+format: proprietary
+summary: >-
+  The RTDF returns one of three response kinds — Success, Warning (the call
+  succeeded but a business rule failed) or Error (the call failed). Error and
+  warning codes are numeric and are published as a machine-readable registry at
+  https://adfapi.rightmove.co.uk/v1/property/errorcodes, but that endpoint sits
+  behind the same mutual-TLS gate as the rest of the feed and returns HTTP 403 to
+  anonymous callers (probed 2026-07-26), so the code list itself CANNOT be
+  harvested without a Rightmove-issued client certificate. The envelope below is
+  documented in the public specification and is recorded verbatim; no codes are
+  invented here.
+response_kinds:
+- kind: Success
+  description: The call has been successful.
+- kind: Warning
+  description: >-
+    The call has been successful, but one of the business rules has failed,
+    generating a warning message. Warnings cover both technical and business-rule
+    conditions (for example a Premium Listing product partially applied).
+- kind: Error
+  description: The call has not been successful due to an error.
+envelope:
+  common_fields: [Request_ID, Message, Success, Request_Timestamp, Response_Timestamp]
+  property_block:
+    fields: [Agent_Ref, Rightmove_ID, Rightmove_URL, Change_Type]
+    note: >-
+      Error responses echo the Agent_Ref supplied in the request where possible;
+      if the error occurs before the message can be processed (an authentication
+      or connection error) the Agent_Ref may be absent.
+  errors:
+    array: Errors
+    fields: [Error_Code, Error_Description, Error_Value]
+  warnings:
+    array: Warnings
+    fields: [Warning_Code, Warning_Description, Warning_Value]
+code_registry:
+  url: https://adfapi.rightmove.co.uk/v1/property/errorcodes
+  reachable_anonymously: false
+  probed: '2026-07-26'
+  http_status: 403
+  gate: mutual TLS (Rightmove-issued X.509 client certificate)
+  harvested: false
+schemas:
+  url: https://adfapi.rightmove.co.uk
+  note: >-
+    The JSON Schemas for every call are served from the same mutual-TLS host and
+    are likewise unreachable anonymously (403). Schemas are also obtainable by
+    emailing adfsupport@rightmove.co.uk.
+agent_reporting:
+  note: >-
+    Warning codes and full warning text are additionally surfaced to the agent
+    inside the Real Time Data Feed Error Report in RightmovePlus — an
+    authenticated web surface, not an API.
+covers_calls:
+- SendPropertyDetails
+- OverseasSendPropertyDetails
+- RemoveProperty
+- GetBranchPropertyList
+- AddPremiumListing
+- AddFeaturedProperty
+- RemoveFeaturedProperty
+- GetBranchPerformance
+- GetPropertyPerformance
+- GetBrandEmails
+- GetBranchEmails
+- GetPropertyEmails

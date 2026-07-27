@@ -1,0 +1,26 @@
+generated: '2026-07-26'
+method: probed
+source: live DNS/TLS/HTTP probes of apis.yml + OpenAPI hosts
+hosts:
+- host: www.rightmove.co.uk
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Aug 21 13:53:21 2026 GMT
+  hsts: false
+- host: api-docs.rightmove.co.uk
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Aug 23 15:52:53 2026 GMT
+  hsts: null
+- host: api-services.rightmove.co.uk
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Aug 21 13:58:51 2026 GMT
+  hsts: null
+domains:
+- domain: rightmove.co.uk
+  dnssec: false
+  caa: []
+  spf: true
+  dmarc: true
+  dmarc_policy: reject

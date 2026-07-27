@@ -1,0 +1,65 @@
+generated: '2026-07-26'
+method: searched
+source: >-
+  Commercial Listings API overview "Environments" section (harvested OpenAPI
+  info.description + https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview),
+  https://www.rightmove.co.uk/adf.html, and the Real Time Data Feed API Web
+  Services Specification v1.4.1
+summary: >-
+  Rightmove operates a real, separate test environment for both APIs, but it is
+  credential-gated end to end — there is no self-serve console, no public
+  playground and no published magic test values. Test credentials are issued
+  case by case by the Rightmove Data Feed Team, and integration goes through a
+  supervised testing cycle before live details are released.
+self_serve: false
+public_test_credentials: false
+magic_test_values: none published
+environments:
+- api: Rightmove Commercial Listings API
+  name: api-test (staging)
+  base_url: https://api-services.adftest.rightmove.com
+  declared_in: OpenAPI servers[0] ("Staging")
+  purpose: Development and testing. Listings submitted here do NOT appear on the live website.
+  credentials: >-
+    Separate test ClientId/ClientKey issued by the Rightmove Data Feed Team
+    (adfsupport@rightmove.co.uk). Production credentials are different and are
+    issued separately.
+  token_endpoint: https://api-services.adftest.rightmove.com/oauth/token
+  probe: {url: 'https://api-services.adftest.rightmove.com/', status: 404, note: host resolves and answers}
+- api: Rightmove Commercial Listings API
+  name: production
+  base_url: https://api-services.rightmove.co.uk
+  declared_in: OpenAPI servers[1] ("Production")
+  purpose: Live listings visible to consumers.
+  credentials: Production ClientId/ClientKey issued by the Rightmove Data Feed Team.
+  probe: {url: 'https://api-services.rightmove.co.uk/v2/property/commercial/branch', status: 401, note: endpoint exists and is credential gated}
+- api: Rightmove Real Time Data Feed API
+  name: test environment
+  base_url: not published
+  note: >-
+    "A set of testing URLs will be provided to you when dates are agreed for your
+    beta testing phase." The test host is not disclosed publicly.
+  credentials: >-
+    A test pack and a keystore containing a private key and X.509 certificate are
+    emailed 1-2 working days before the agreed testing start date, with the
+    keystore password sent by SMS to a mobile number the integrator supplies.
+onboarding_to_test:
+  contact: adfsupport@rightmove.co.uk
+  steps:
+  - Contact the Rightmove Data Feed Team and request a testing commencement date.
+  - Submit the ADF Provider Contact Form (https://media.rightmove.co.uk/ps/pdf/guides/adf/Provider_Contact_Form.pdf).
+  - Accept the RTDF End User Licence Agreement.
+  - 'Supply a mobile number and preferred keystore format (RTDF: JKS/JCEKS for Java, PKCS#12 for Windows, PEM otherwise).'
+  - Receive test credentials (Commercial) or a test keystore + test pack (RTDF).
+  - Complete the supervised testing cycle, then request live details.
+test_data:
+  test_cards: n/a (no payments surface)
+  magic_identifiers: none published
+  fixtures: none published
+  time_simulation: none published
+  note: >-
+    Rightmove publishes no sandbox fixtures or simulator values. Test listings
+    are the integrator's own data submitted against the staging host; the
+    Commercial API's `published` flag and the six status values (AVAILABLE,
+    SOLD_STC, SOLD_STCM, RESERVED, LET_AGREED, UNDER_OFFER) are the only
+    visibility controls, and they behave the same in both environments.

@@ -1,0 +1,89 @@
+generated: '2026-07-26'
+method: searched
+source: >-
+  Commercial Listings API overview + embedded changelog (harvested OpenAPI
+  info.description), Apigee portal catalogue
+  (specId property-feed-product-api-2.1.6), and the Rightmove Real Time Data Feed
+  API Web Services Specification v1.4.1 document update log
+summary: >-
+  Rightmove versions both APIs in the URI path and publishes a dated change
+  history for each — a semver changelog embedded in the Commercial Listings
+  OpenAPI, and a document update log in the RTDF specification. It publishes NO
+  standalone deprecation policy page, no Sunset/Deprecation header support, no
+  SLA and no public status page (status.rightmove.co.uk is NXDOMAIN). Field-level
+  deprecations are announced in the changelog only.
+apis:
+- api: Rightmove Commercial Listings API
+  versioning:
+    scheme: uri-path
+    current_path: /v2
+    release_scheme: semver
+    current_version: 2.1.6
+    current_version_date: '2026-06-23'
+    spec_declared_version: 1.0.0
+    spec_version_note: >-
+      info.version in the published document reads 1.0.0 while the Apigee portal
+      snapshot id is property-feed-product-api-2.1.6 and the embedded changelog
+      runs to v2.1.6 — the document's own version field is stale. Recorded as
+      served; not corrected.
+    policy: >-
+      Major = breaking changes requiring client updates; minor =
+      backwards-compatible enhancements; patch = bug fixes or documentation
+      updates. Integrations must tolerate additional response fields.
+    docs: https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview
+  maturity:
+    stage: early-adopter / pre-production portal
+    evidence: >-
+      Portal site id rightmove-pd-preprod-apigee-commercialpoc, Apigee org
+      rightmove-pd-preprod-apigee, site title "Rightmove APIs - Early adopters",
+      single API category "Beta users", API product described as "PREPROD API
+      Product". The production host api-services.rightmove.co.uk is nonetheless
+      live and answers 401 on the documented endpoint.
+  deprecation:
+    policy_url: null
+    sunset_header: false
+    deprecation_header: false
+    practice: >-
+      Deprecations are announced in the changelog with a "please do not send
+      these fields going forward" instruction; there is no dated sunset commitment
+      and no standalone deprecation-policy page.
+    announced_field_deprecations:
+    - {field: constructionType, object: Building, announced_in: v2.1.0, announced_on: '2025-11-07'}
+    - {field: model, object: Space, announced_in: v2.1.0, announced_on: '2025-11-07'}
+    breaking_changes:
+    - {version: 2.0.0, date: '2025-10-09', change: Removed COMMERCIAL and STUDENT values from the LetType field.}
+    - {version: 2.1.2, date: '2025-12-03', change: 'INDUSTRIAL_DEVELOPMENT removed from LAND_AND_DEVELOPMENT (existing properties remapped to COMMERCIAL_DEVELOPMENT); AEROSPACE removed from OTHER.'}
+    - {version: 2.1.4, date: '2026-05-22', change: 'Component schemas renamed: Pricing -> SpacePricing, Sizing -> SpaceSizing, PriceDisplayQualifier -> SpacePriceDisplayQualifier.'}
+  deprecated_operations: []
+  deprecated_operations_note: >-
+    No operation in the OpenAPI is marked deprecated.
+- api: Rightmove Real Time Data Feed API
+  versioning:
+    scheme: uri-path
+    current_path: /v1
+    spec_version: 1.4.1
+    spec_date: '2023-11-30'
+    docs: https://www.rightmove.co.uk/adf.html
+    note: >-
+      A prior "v3 feed" is referenced in the specification; new integrators are
+      set up on a new network on this feed and branches were migrated gradually.
+  deprecation:
+    policy_url: null
+    sunset_header: false
+    practice: Removals and deprecations are recorded in the specification's document update log.
+    history:
+    - {version: 1.3.1, date: '2017-10-25', change: Deprecated fields flagged in SendProperty, OverseasSendProperty, GetBrandEmails, GetBranchEmails and GetPropertyEmails.}
+    - {version: 1.3.5, date: '2019-11-05', change: XML support removed (JSON only).}
+    - {version: 1.3.6, date: '2021-04-26', change: 'GetBranchPhoneLeads and GetBrandPhoneLeads removed; deprecated fields DPA_flag, Principal email and renter application url removed; TLS 1.0 and 1.1 support removed.'}
+    - {version: 1.4.0, date: '2022-04-11', change: Housing_Benefit_Considered deprecated.}
+sla:
+  url: null
+  uptime_target: null
+  note: No published SLA. Support and escalation route through adfsupport@rightmove.co.uk.
+status_page:
+  url: null
+  probed: '2026-07-26'
+  result: status.rightmove.co.uk does not resolve (NXDOMAIN). No status page found on any Rightmove property.
+support:
+  email: adfsupport@rightmove.co.uk
+  team: Rightmove Data Feed Team

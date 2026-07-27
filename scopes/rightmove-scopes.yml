@@ -1,0 +1,43 @@
+generated: '2026-07-26'
+method: searched
+source: openapi/rightmove-commercial-listings-openapi.yml
+docs: https://api-docs.rightmove.co.uk/authentication
+summary: >-
+  Rightmove does NOT operate an OAuth scope model. The portal authentication page
+  states that scopes "are not currently required or implemented", and the
+  securityScheme in the published OpenAPI carries an empty scopes map. The single
+  entry below is not a real scope — it is a malformed free-text string that leaked
+  into the `security` requirement of one operation, recorded verbatim rather than
+  dressed up as a permission model.
+scopes_implemented: false
+schemes:
+- name: OAuth2
+  source: openapi/rightmove-commercial-listings-openapi.yml
+  grant_documented: client_credentials
+  token_url: /oauth/token
+  flows:
+  - flow: implicit
+    authorizationUrl: /oauth/token
+    scopes: {}
+    note: >-
+      Declared flow does not match the documented grant — see
+      authentication/rightmove-authentication.yml for the defect note.
+  description: This API uses OAuth2 client credentials flow for server to server authentication
+scopes:
+- scope: client Grants read and write access
+  real_scope: false
+  description: >-
+    Appears as the sole entry in the security requirement of
+    getCommercialPropertiesByBranch (security: [{OAuth2: ["client Grants read and
+    write access"]}]). It is a concatenation of a scope name and its description
+    that was never split, and no scopes map declares it. Do not send it as a scope
+    parameter.
+  operations: [getCommercialPropertiesByBranch]
+  sources:
+  - openapi/rightmove-commercial-listings-openapi.yml
+authorization_model:
+  actual: >-
+    Authorization is entitlement-based, not scope-based. A ClientId/ClientKey pair
+    is bound by Rightmove to specific agents and branches; calling outside that
+    entitlement returns 403. The Real Time Data Feed enforces the same idea with
+    Network_ID and Branch_ID carried in the payload.

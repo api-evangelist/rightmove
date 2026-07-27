@@ -1,0 +1,46 @@
+generated: '2026-07-26'
+method: searched
+source: >-
+  Commercial Listings API overview, "Rate Limiting" section, published in the
+  harvested OpenAPI info.description
+  (openapi/rightmove-commercial-listings-openapi.yml) and rendered at
+  https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview
+summary: >-
+  Rightmove documents that the Commercial Listings API is rate limited and that
+  the quota window resets every 60 seconds, but does NOT publish the quota
+  value — it varies per environment and per endpoint and is set by the
+  Rightmove Data Feed Team. No numeric limit is therefore recorded here. The
+  Real Time Data Feed specification (v1.4.1) documents no rate limits at all.
+apis:
+- api: Rightmove Commercial Listings API
+  enforced: true
+  response_code: 429
+  response_description: >-
+    "This response will be presented when your quota has been exceeded." Declared
+    on all four operations in the OpenAPI.
+  window_seconds: 60
+  window_note: The quota resets every 60 seconds.
+  limit_count: null
+  limit_note: >-
+    Not published. "The specific number of allowed requests (the quota value) may
+    vary per environment (e.g. staging vs. production) and per endpoint." Higher
+    limits are negotiated with adfsupport@rightmove.co.uk.
+  headers:
+    retry_after: unconfirmed
+    rate_limit_headers: unconfirmed
+    note: >-
+      The docs say "While not explicitly detailed in the OpenAPI for this
+      endpoint, APIs often include headers in 429 responses like Retry-After ...
+      Check the response headers" — i.e. Rightmove does not commit to emitting
+      Retry-After or X-RateLimit-* headers. Callers must not depend on them.
+  client_guidance: >-
+    Wait before retrying; exponential backoff is the documented recommendation.
+  enforced_by: Google Apigee (the API is fronted by Apigee; the portal org is
+    rightmove-pd-preprod-apigee)
+- api: Rightmove Real Time Data Feed API
+  enforced: unknown
+  limit_count: null
+  limit_note: >-
+    The RTDF v1.4.1 specification documents no request quota, no 429 handling and
+    no throttling policy. Volume expectations are agreed with the Data Feed Team
+    during the supervised testing phase.

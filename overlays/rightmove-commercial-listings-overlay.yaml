@@ -1,0 +1,106 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the Rightmove Commercial Listings API
+  version: 1.0.0
+extends: openapi/rightmove-commercial-listings-openapi.yml
+x-apievangelist:
+  generated: '2026-07-26'
+  method: generated
+  source: >-
+    Derived from the harvested spec plus the artifacts in this repo
+    (conventions/, errors/, rate-limits/, lifecycle/, authentication/,
+    agentic-access/). The original document is never mutated — apply this overlay
+    to get the annotated version.
+actions:
+- target: $.info
+  description: Record the API Evangelist profile and the real release version.
+  update:
+    x-apievangelist-profile: https://apis.io/provider/rightmove/
+    x-apievangelist-repo: https://github.com/api-evangelist/rightmove
+    x-release-version: 2.1.6
+    x-release-date: '2026-06-23'
+    x-version-note: >-
+      info.version reads 1.0.0 in the published document while the Apigee portal
+      snapshot is property-feed-product-api-2.1.6 and the embedded changelog runs
+      to v2.1.6. The document's version field is stale.
+    x-access-gate: application-approval
+    x-access-note: >-
+      Credentials for BOTH the api-test and production environments are issued
+      case by case by the Rightmove Data Feed Team (adfsupport@rightmove.co.uk).
+      The portal's self-serve app registration does not yield working credentials.
+- target: $.info
+  description: Add the operational conventions captured in conventions/rightmove-conventions.yml.
+  update:
+    x-conventions:
+      idempotency:
+        supported: true
+        mechanism: client-supplied-key upsert on PUT
+        key: reference (path parameter)
+        header: none
+      pagination:
+        style: page-number
+        params: [page, size]
+        applies_to: [getCommercialPropertiesByBranch]
+      rate-limits:
+        code: 429
+        window-seconds: 60
+        limit: not published (varies per environment and endpoint)
+      processing: asynchronous — a 2xx is an acceptance, not a publication guarantee
+      tracing: meta.traceId on success, properties.traceId on error
+- target: $.components.securitySchemes.OAuth2
+  description: >-
+    Flag the contract defect — the scheme declares an implicit flow with an empty
+    scopes map while the prose and the portal authentication page both document
+    the client_credentials grant. The original is left untouched.
+  update:
+    x-defect: >-
+      Declared flow is `implicit` with authorizationUrl /oauth/token and no
+      scopes; the documented and implemented grant is client_credentials with a
+      tokenUrl. Clients must POST to /oauth/token, not redirect a user agent.
+    x-documented-grant: client_credentials
+    x-token-url: /oauth/token
+    x-scopes-implemented: false
+    x-docs: https://api-docs.rightmove.co.uk/authentication
+- target: $.paths['/v2/property/commercial/{reference}'].put
+  description: Record the idempotency contract on the upsert operation.
+  update:
+    x-idempotent: true
+    x-idempotency-key: reference
+    x-idempotency-note: >-
+      A new reference creates (201); the same reference updates (200). Safe to
+      retry on 429/502/503 with backoff.
+    x-agentic-access:
+      action-class: acting
+      consequence: write
+      audit: required
+- target: $.paths['/v2/property/commercial/{reference}'].delete
+  description: Record the irreversibility of removal for agent-safety tooling.
+  update:
+    x-irreversible: true
+    x-cascade: Removes the property and any associated listings; it will not be returned by future queries.
+    x-agentic-access:
+      action-class: acting
+      consequence: physical
+      audit: required
+      human-in-the-loop: recommended
+- target: $.paths['/v2/property/commercial/branch'].get
+  description: >-
+    The operation is untagged in the source document, which breaks tag-based
+    navigation and per-tag spec splitting. Tag it with the existing Property tag.
+  update:
+    tags: [Property]
+- target: $.paths['/v2/property/commercial/branch'].get
+  description: Record the pagination contract.
+  update:
+    x-pagination:
+      style: page-number
+      params: [page, size]
+- target: $.components.schemas.ProblemDetail
+  description: Record the error-format posture captured in errors/rightmove-problem-types.yml.
+  update:
+    x-error-format: rfc7807-shaped
+    x-media-type-served: application/json
+    x-media-type-note: >-
+      Served as application/json rather than application/problem+json, so this is
+      RFC 7807-shaped rather than RFC 7807/9457 compliant on the wire.
+    x-extensions: [properties.traceId, properties.timestamp, properties.validationError]

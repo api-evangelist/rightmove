@@ -1,0 +1,133 @@
+generated: '2026-07-26'
+method: derived
+source: >-
+  openapi/rightmove-commercial-listings-openapi.yml, Commercial Listings API
+  overview, and the Real Time Data Feed API Web Services Specification v1.4.1
+summary: >-
+  Rightmove asserts no formal certification of any kind and publishes no
+  compliance programme, trust centre or audit report. Conformance below is
+  DERIVED from what the published contracts actually do. The headline finding for
+  a property portal is negative and deliberate: there is no RESO Web API, no RESO
+  Data Dictionary and no OData surface anywhere in Rightmove's estate — RESO is a
+  North American, NAR-driven standard with no UK counterpart, and Rightmove uses
+  its own proprietary ADF/RTDF schema instead.
+standards:
+- id: openapi-3.0
+  conforms: true
+  evidence: openapi/rightmove-commercial-listings-openapi.yml declares openapi 3.0.1 and parses.
+- id: oauth2
+  conforms: partial
+  evidence: >-
+    components.securitySchemes.OAuth2 is type oauth2 and every operation carries a
+    security requirement, but the declared flow is `implicit` with
+    authorizationUrl /oauth/token and an empty scopes map, while the description
+    and the portal authentication page both document the client_credentials
+    grant. The machine-readable declaration does not match the documented grant.
+- id: oauth2-client-credentials
+  conforms: true
+  evidence: 'Documented grant: ClientId/ClientKey exchanged at /oauth/token for a Bearer token (portal authentication page).'
+- id: openid-connect
+  conforms: false
+  evidence: No discovery document on any host; /.well-known/openid-configuration is absent (see well-known/rightmove-well-known.yml).
+- id: rfc7807-problem-details
+  conforms: partial
+  evidence: >-
+    ProblemDetail schema carries type/title/status/detail/instance plus a
+    properties extension object and the docs name the format, but responses are
+    served as application/json, not application/problem+json.
+- id: rfc9457-problem-details
+  conforms: false
+  evidence: No application/problem+json media type and no registered problem-type URIs are published.
+- id: rfc9116-security-txt
+  conforms: false
+  evidence: No /.well-known/security.txt on any Rightmove host (probed 2026-07-26).
+- id: rfc8594-sunset-header
+  conforms: false
+  evidence: No Sunset or Deprecation header support documented; deprecations are announced in the changelog only.
+- id: rfc8414-oauth-authorization-server-metadata
+  conforms: false
+  evidence: /.well-known/oauth-authorization-server returns 404 on both API hosts.
+- id: semver
+  conforms: true
+  evidence: 'The API documents semantic versioning (major.minor.patch) and the embedded changelog follows it: v0.1.0 -> v2.1.6.'
+- id: mutual-tls
+  conforms: true
+  evidence: >-
+    The Real Time Data Feed authenticates with a Rightmove-issued X.509 client
+    certificate and private key delivered in a keystore (JKS/JCEKS/PKCS#12/PEM).
+- id: tls-1.2-minimum
+  conforms: true
+  evidence: >-
+    RTDF spec removed TLS 1.0/1.1 support (v1.3.6) and requires TLS 1.2 on media
+    servers; all live hosts negotiated TLSv1.3 when probed (see
+    security/rightmove-domain-security.yml).
+- id: reso-web-api
+  conforms: false
+  evidence: >-
+    No RESO route, no OData service root, no $metadata document, no
+    $filter/$select/$expand conventions and no @odata.* annotations in any
+    Rightmove surface. RESO does not apply in the UK market — there is no MLS and
+    no NAR-equivalent mandate.
+- id: reso-data-dictionary
+  conforms: false
+  evidence: >-
+    50 component schemas of Rightmove's own design (Building, Space, Media,
+    MediaAsset, ProblemDetail, PropertyReference...) with British transaction
+    states (AVAILABLE, SOLD_STC, SOLD_STCM, RESERVED, LET_AGREED, UNDER_OFFER)
+    that have no Data Dictionary equivalent. RTDF likewise uses proprietary field
+    names (Network_ID, Branch_ID, Agent_Ref, Channel).
+- id: odata
+  conforms: false
+  evidence: No OData metadata document or query conventions anywhere.
+- id: json-api
+  conforms: false
+  evidence: >-
+    Responses use a Rightmove meta/data envelope with self/display link objects,
+    not the JSON:API media type or document structure.
+- id: uprn
+  conforms: partial
+  evidence: >-
+    Location.uprn is an accepted field on the Commercial Listings payload — the
+    UK Unique Property Reference Number (Ordnance Survey / GeoPlace) is supported
+    as an input, but is not the resource key. Properties are keyed on the
+    agent-supplied `reference` (Commercial) or `Agent_Ref` (RTDF).
+- id: ipms
+  conforms: true
+  evidence: >-
+    Space and building sizing accept an IPMS measurementType (IPMS1, IPMS2,
+    IPMS3_1, IPMS3_2 per the v0.5.0 changelog entry) — the RICS International
+    Property Measurement Standards.
+- id: epc
+  conforms: true
+  evidence: >-
+    EPC media assets (epcs, epcGraphs) and an environment.epcRating field are
+    first-class in the payload; the rating range was widened to 500 to
+    accommodate ESG credentials (v0.4.0).
+- id: breeam
+  conforms: true
+  evidence: environment.breeamRating is an accepted field.
+- id: idempotent-writes
+  conforms: true
+  evidence: >-
+    PUT keyed on the client-supplied `reference` path parameter is an idempotent
+    upsert (201 on create, 200 on update); RTDF uses Agent_Ref for the same
+    purpose. No Idempotency-Key header exists. See
+    conventions/rightmove-conventions.yml.
+- id: pagination
+  conforms: true
+  evidence: getCommercialPropertiesByBranch accepts page and size query parameters.
+certifications_published: []
+compliance_programme_published: false
+compliance_note: >-
+  No SOC 2, ISO 27001, PCI DSS, HIPAA, FedRAMP, CSA STAR or equivalent claim was
+  found on any Rightmove property, and no trust centre exists
+  (trust.rightmove.co.uk / security.rightmove.co.uk were probed and do not serve
+  one). Rightmove plc publishes corporate governance and ESG reporting through
+  plc.rightmove.co.uk, which is investor reporting, not an API compliance
+  programme. No Compliance pointer is therefore wired.
+legal_gate:
+  eula: https://media.rightmove.co.uk/ps/pdf/guides/adf/RTDF_EULA.pdf
+  note: >-
+    Use of any feed is governed by a binding End User Licence Agreement with
+    Rightmove Group Limited (company number 03997679) covering the Commercial
+    API, the New Homes API, the Overseas API and the UK Sales and Lettings API.

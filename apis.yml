@@ -20,7 +20,7 @@ description: Rightmove is the United Kingdom's largest residential property port
   OData `$metadata` document or Universal Property Identifier appears anywhere in
   Rightmove's surface - RESO is a North American, NAR-driven standard with no UK
   counterpart, and Rightmove uses its own proprietary ADF/RTDF schema instead.
-image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/icons/groq.png
+image: https://media.rightmove.co.uk/assets/shared-assets/favicons/light/favicon.ico
 tags:
 - Real Estate
 - United Kingdom
@@ -108,9 +108,60 @@ apis:
   - type: Onboarding
     url: https://media.rightmove.co.uk/ps/pdf/guides/adf/Provider_Contact_Form.pdf
     name: ADF Provider Contact Form
+  - type: ErrorCatalog
+    url: errors/rightmove-rtdf-error-codes.yml
+    name: RTDF Success/Warning/Error envelope (numeric code registry is mutual-TLS gated)
   - type: Support
     url: mailto:adfsupport@rightmove.co.uk
 common:
+- type: AgenticAccess
+  url: agentic-access/rightmove-agentic-access.yml
+- type: DomainSecurity
+  url: security/rightmove-domain-security.yml
+- type: OAuthScopes
+  url: scopes/rightmove-scopes.yml
+  name: No scope model - scopes are not implemented (recorded absence)
+- type: Authentication
+  url: authentication/rightmove-authentication.yml
+  name: OAuth2 client credentials (Commercial) + mutual TLS (RTDF)
+- type: Conventions
+  url: conventions/rightmove-conventions.yml
+  name: Auth, idempotency, pagination, versioning, tracing, media and error semantics
+- type: Idempotency
+  url: conventions/rightmove-conventions.yml
+  name: Idempotent upsert keyed on the client-supplied reference (PUT) / Agent_Ref (RTDF) - no Idempotency-Key header
+- type: ErrorCatalog
+  url: errors/rightmove-problem-types.yml
+  name: Commercial Listings ProblemDetail catalogue (RFC 7807-shaped)
+- type: RateLimits
+  url: rate-limits/rightmove-rate-limits.yml
+  name: 429 with a 60-second quota window; quota value not published
+- type: Lifecycle
+  url: lifecycle/rightmove-lifecycle.yml
+  name: Versioning, deprecation practice, maturity and SLA posture
+- type: ChangeLog
+  url: changelog/rightmove-changelog.yml
+  name: Dated release history for both APIs (v0.1.0 to v2.1.6)
+- type: DataModel
+  url: data-model/rightmove-data-model.yml
+  name: Building/Space entity graph derived from the OpenAPI
+- type: Conformance
+  url: conformance/rightmove-conformance.yml
+  name: Standards conformance incl. the RESO/OData absence
+- type: Sandbox
+  url: sandbox/rightmove-sandbox.yml
+  name: api-test staging environment and the supervised testing cycle
+- type: Packages
+  url: packages/rightmove-packages.yml
+  name: Community libraries only - Rightmove publishes no first-party SDK
+- type: AgentSkill
+  url: skills/_index.yml
+  name: Packaged agent skills for the Commercial Listings API
+- type: LLMsTxt
+  url: llms/rightmove-llms.txt
+- type: Overlay
+  url: overlays/rightmove-commercial-listings-overlay.yaml
+  name: API Evangelist enhancements for the Commercial Listings OpenAPI
 - type: Website
   url: https://www.rightmove.co.uk/
 - type: DeveloperPortal
@@ -129,8 +180,19 @@ common:
   url: https://www.rightmove.co.uk/c/terms-of-use/
 - type: PrivacyPolicy
   url: https://www.rightmove.co.uk/c/privacy-policy/
+- type: APIReference
+  url: https://api-docs.rightmove.co.uk/apis
+- type: GettingStarted
+  url: https://api-docs.rightmove.co.uk/get-started
+- type: SignUp
+  url: https://api-docs.rightmove.co.uk/accounts/create
+  name: Portal account registration (does NOT yield working API credentials - those come from the Data Feed Team)
+- type: Onboarding
+  url: https://media.rightmove.co.uk/ps/pdf/guides/adf/Provider_Contact_Form.pdf
+  name: ADF Provider Contact Form
 - type: GitHubOrganization
   url: https://github.com/rightmove
+  name: 15 public repos, all hiring/interview exercises - no SDK, spec or client library
 - type: LinkedIn
   url: https://www.linkedin.com/company/rightmove
 - type: InvestorRelations
