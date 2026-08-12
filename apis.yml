@@ -114,6 +114,8 @@ apis:
   - type: Support
     url: mailto:adfsupport@rightmove.co.uk
 common:
+- type: MCPServer
+  url: mcp/rightmove-mcp.yml
 - type: AgenticAccess
   url: agentic-access/rightmove-agentic-access.yml
 - type: DomainSecurity
