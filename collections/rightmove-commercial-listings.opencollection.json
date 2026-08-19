@@ -1,0 +1,160 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Commercial Listings API",
+    "version": "1.0.0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Property",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Gets a Commercial Property (UK Only)",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api-services.adftest.rightmove.com/v2/property/commercial/:reference",
+            "headers": [
+              {
+                "name": "Rightmove-Agent-ID",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "reference",
+                "value": "",
+                "type": "path",
+                "description": "The reference identifier of the property to retrieve."
+              }
+            ],
+            "auth": {
+              "type": "oauth2",
+              "flow": "implicit",
+              "authorizationUrl": "/oauth/token",
+              "credentials": {
+                "clientId": "{{clientId}}"
+              }
+            }
+          },
+          "docs": "Gets a Commercial Property (UK Only)"
+        },
+        {
+          "info": {
+            "name": "Sends Commercial Properties (UK Only)",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://api-services.adftest.rightmove.com/v2/property/commercial/:reference",
+            "params": [
+              {
+                "name": "reference",
+                "value": "Property_Reference_123",
+                "type": "path",
+                "description": "The reference of the property. This must be the same provided at space level, when the property defines a building with no spaces."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "oauth2",
+              "flow": "implicit",
+              "authorizationUrl": "/oauth/token",
+              "credentials": {
+                "clientId": "{{clientId}}"
+              }
+            }
+          },
+          "docs": "Upload or update commercial properties"
+        },
+        {
+          "info": {
+            "name": "Removes Commercial Properties (UK Only)",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api-services.adftest.rightmove.com/v2/property/commercial/:reference",
+            "params": [
+              {
+                "name": "reference",
+                "value": "Property_Reference_123",
+                "type": "path",
+                "description": "The reference of the property. This must be the same provided at space level, when a property defines a building with no spaces."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "oauth2",
+              "flow": "implicit",
+              "authorizationUrl": "/oauth/token",
+              "credentials": {
+                "clientId": "{{clientId}}"
+              }
+            }
+          },
+          "docs": "Remove commercial properties"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Default",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Gets list of commercial properties (UK Only) by branch",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api-services.adftest.rightmove.com/v2/property/commercial/branch",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "query",
+                "description": "The ID of the branch"
+              },
+              {
+                "name": "page",
+                "value": "",
+                "type": "query",
+                "description": "The page number to return"
+              },
+              {
+                "name": "size",
+                "value": "",
+                "type": "query",
+                "description": "The size of results to be returned in a page"
+              }
+            ],
+            "auth": {
+              "type": "oauth2",
+              "flow": "implicit",
+              "authorizationUrl": "/oauth/token",
+              "credentials": {
+                "clientId": "{{clientId}}"
+              }
+            }
+          },
+          "docs": "Gets list of commercial properties (UK Only) by branch"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}
