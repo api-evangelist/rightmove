@@ -22,6 +22,15 @@ description: Rightmove is the United Kingdom's largest residential property port
   counterpart, and Rightmove uses its own proprietary ADF/RTDF schema instead.
 image: https://media.rightmove.co.uk/assets/shared-assets/favicons/light/favicon.ico
 tags:
+- Real-Estate
+- United Kingdom
+- Property Listings
+- Property Portal
+- PropTech
+- Rentals
+- Commercial Real Estate
+- Data Feed
+tags_raw:
 - Real Estate
 - United Kingdom
 - Property Listings
@@ -51,6 +60,11 @@ apis:
   humanURL: https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview
   baseURL: https://api-services.rightmove.co.uk
   tags:
+  - Commercial Real Estate
+  - Property Listings
+  - Real-Estate
+  - United Kingdom
+  tags_raw:
   - Commercial Real Estate
   - Property Listings
   - Real Estate
@@ -91,6 +105,12 @@ apis:
   humanURL: https://www.rightmove.co.uk/adf.html
   baseURL: https://adfapi.rightmove.co.uk/v1
   tags:
+  - Property Listings
+  - Rentals
+  - Real-Estate
+  - United Kingdom
+  - Data Feed
+  tags_raw:
   - Property Listings
   - Rentals
   - Real Estate
