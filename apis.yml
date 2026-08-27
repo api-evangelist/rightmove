@@ -43,65 +43,19 @@ created: '2026-07-26'
 modified: '2026-07-26'
 specificationVersion: '0.23'
 apis:
-- aid: rightmove:rightmove-commercial-listings-api
-  name: Rightmove Commercial Listings API
-  description: >-
-    The Commercial Listings API allows commercial agents and feed providers to upload,
-    update, retrieve and remove commercial property listings for display on the Rightmove
-    website. It models a property as either a BUILDING or a SPACE, carries media
-    (photos, floor plans, EPCs, EPC graphs, brochures, virtual tours) as publicly
-    reachable URLs, and processes changes asynchronously. Residential listings are
-    explicitly out of scope and must continue to go through the Real Time Data Feed
-    API. Authentication is OAuth2 client credentials with credentials issued by the
-    Rightmove Data Feed Team; errors are returned as RFC 7807-style ProblemDetail
-    bodies. The published OpenAPI declares two paths — GET/PUT/DELETE on
-    /v2/property/commercial/{reference} and GET on /v2/property/commercial/branch —
-    plus a staging server at https://api-services.adftest.rightmove.com.
-  humanURL: https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview
-  baseURL: https://api-services.rightmove.co.uk
-  tags:
-  - Commercial Real Estate
-  - Property Listings
-  - Real-Estate
-  - United Kingdom
-  tags_raw:
-  - Commercial Real Estate
-  - Property Listings
-  - Real Estate
-  - United Kingdom
-  properties:
-  - type: OpenAPI
-    url: openapi/rightmove-commercial-listings-openapi.yml
-  - type: Documentation
-    url: https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview
-  - type: APIReference
-    url: https://api-docs.rightmove.co.uk/apis
-  - type: Authentication
-    url: https://api-docs.rightmove.co.uk/authentication
-  - type: GettingStarted
-    url: https://api-docs.rightmove.co.uk/get-started
-  - type: SignUp
-    url: https://api-docs.rightmove.co.uk/accounts/create
-  - type: TermsOfService
-    url: https://api-docs.rightmove.co.uk/terms
-  - type: Support
-    url: mailto:adfsupport@rightmove.co.uk
 - aid: rightmove:rightmove-real-time-data-feed-api
   name: Rightmove Real Time Data Feed API
   description: >-
-    The Real Time Data Feed (RTDF) is Rightmove's incremental HTTPS/JSON interface for
-    UK sales, lettings and overseas sales listings, used by estate agency CRM and feed
-    provider software rather than by end developers. The publicly downloadable
-    specification (v1.4.1, last updated November 2023) documents thirteen calls on
-    https://adfapi.rightmove.co.uk/v1/property/, including SendPropertyDetails,
-    OverseasSendPropertyDetails, RemoveProperty, GetBranchPropertyList,
-    AddPremiumListing, AddFeaturedProperty, RemoveFeaturedProperty,
-    GetBranchPerformance, GetPropertyPerformance, GetBrandEmails, GetBranchEmails,
-    GetPropertyEmails and ErrorCodes. Calls carry a Rightmove-issued Network_ID and
-    Branch_ID and an Agent_Ref that keys create-versus-update. Access is mutual-TLS -
-    Rightmove issues an X.509 certificate and private key in a keystore by email with
-    the password sent by SMS - so neither the endpoints nor the referenced JSON
-    Schemas are reachable anonymously (probed 403).
+    The Real Time Data Feed (RTDF) is Rightmove's incremental HTTPS/JSON interface for UK sales, lettings
+    and overseas sales listings, used by estate agency CRM and feed provider software rather than by end
+    developers. The publicly downloadable specification (v1.4.1, last updated November 2023) documents
+    thirteen calls on https://adfapi.rightmove.co.uk/v1/property/, including SendPropertyDetails, OverseasSendPropertyDetails,
+    RemoveProperty, GetBranchPropertyList, AddPremiumListing, AddFeaturedProperty, RemoveFeaturedProperty,
+    GetBranchPerformance, GetPropertyPerformance, GetBrandEmails, GetBranchEmails, GetPropertyEmails and
+    ErrorCodes. Calls carry a Rightmove-issued Network_ID and Branch_ID and an Agent_Ref that keys create-versus-update.
+    Access is mutual-TLS - Rightmove issues an X.509 certificate and private key in a keystore by email
+    with the password sent by SMS - so neither the endpoints nor the referenced JSON Schemas are reachable
+    anonymously (probed 403).
   humanURL: https://www.rightmove.co.uk/adf.html
   baseURL: https://adfapi.rightmove.co.uk/v1
   tags:
@@ -120,7 +74,8 @@ apis:
   - type: Documentation
     url: https://www.rightmove.co.uk/adf.html
   - type: Specification
-    url: https://media.rightmove.co.uk/ps/pdf/guides/adf/Rightmove_Real_Time_Datafeed_Specification.pdf
+    url: >-
+      https://media.rightmove.co.uk/ps/pdf/guides/adf/Rightmove_Real_Time_Datafeed_Specification.pdf
     name: Rightmove Real Time Data Feed API Web Services Specification v1.4.1
   - type: License
     url: https://media.rightmove.co.uk/ps/pdf/guides/adf/RTDF_EULA.pdf
@@ -131,6 +86,30 @@ apis:
   - type: ErrorCatalog
     url: errors/rightmove-rtdf-error-codes.yml
     name: RTDF Success/Warning/Error envelope (numeric code registry is mutual-TLS gated)
+  - type: Support
+    url: mailto:adfsupport@rightmove.co.uk
+- aid: rightmove:rightmove-property-api
+  name: Rightmove Property API
+  description: Create, Updated, Remove and Retrieve properties
+  humanURL: https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview
+  baseURL: https://api-services.rightmove.co.uk
+  tags:
+  - Property
+  properties:
+  - type: OpenAPI
+    url: openapi/rightmove-property-api-openapi.yml
+  - type: Documentation
+    url: https://api-docs.rightmove.co.uk/docs/property-feed-api-product/1/overview
+  - type: APIReference
+    url: https://api-docs.rightmove.co.uk/apis
+  - type: Authentication
+    url: https://api-docs.rightmove.co.uk/authentication
+  - type: GettingStarted
+    url: https://api-docs.rightmove.co.uk/get-started
+  - type: SignUp
+    url: https://api-docs.rightmove.co.uk/accounts/create
+  - type: TermsOfService
+    url: https://api-docs.rightmove.co.uk/terms
   - type: Support
     url: mailto:adfsupport@rightmove.co.uk
 common:
