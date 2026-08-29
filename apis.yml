@@ -20,6 +20,20 @@ description: Rightmove is the United Kingdom's largest residential property port
   OData `$metadata` document or Universal Property Identifier appears anywhere in
   Rightmove's surface - RESO is a North American, NAR-driven standard with no UK
   counterpart, and Rightmove uses its own proprietary ADF/RTDF schema instead.
+deliveryModel:
+  model: saas
+  license: RTDF End User Licence Agreement
+  open_source: false
+  commercial: true
+  callable_host: true
+  label: Hosted service · you call their endpoint
+  confidence: high
+  source:
+  - license
+  - openapi
+  - pricing
+  generated: '2026-08-28'
+  method: derived
 image: https://media.rightmove.co.uk/assets/shared-assets/favicons/light/favicon.ico
 tags:
 - Real-Estate
