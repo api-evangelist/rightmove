@@ -1,5 +1,8 @@
 aid: rightmove
 url: https://raw.githubusercontent.com/api-evangelist/rightmove/refs/heads/main/apis.yml
+x-api-posture: no-product-api
+x-api-posture-basis: observed
+x-api-posture-note: "Its API posture is publish-in, not read-out - the documented APIs let an agent's CRM or feed provider push listings into Rightmove, and there is no public API for reading listings, sold prices or valu"
 name: Rightmove
 kind: company
 description: Rightmove is the United Kingdom's largest residential property portal,
@@ -127,6 +130,9 @@ apis:
   - type: Support
     url: mailto:adfsupport@rightmove.co.uk
 common:
+- type: CapabilityMap
+  url: capabilities/rightmove-capability-edges.yml
+  name: Rightmove Business Capability Map
 - type: MCPServer
   url: mcp/rightmove-mcp.yml
 - type: AgenticAccess
