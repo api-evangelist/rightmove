@@ -1,0 +1,27 @@
+slug: rightmove
+provider: Rightmove
+generated_by: planning/capability-mapping/scripts/classify_capabilities.py
+model: claude-opus-5
+frame:
+- Real Estate
+min_confidence: 0.7
+capability_model:
+  source: https://github.com/vincentmakes/turbo-ea-capabilities
+  license: CC-BY-4.0
+  attribution: Turbo EA Capabilities by Vincent Verdet — Turbo EA, https://github.com/vincentmakes/turbo-ea-capabilities,
+    CC BY 4.0
+  notice: NOTICE
+edge_count: 1
+edges:
+- tag: Property
+  spec_file: rightmove-property-api-openapi.yml
+  capability_id: BC-4960.30
+  capability_id_l1: BC-4960
+  capability_name: Listing Data & MLS Management
+  confidence: 0.85
+  evidence: The Commercial Listings API allows you to upload, update, retrieve, and remove Commercial
+    property listings for display on the Rightmove website ... designed for use by Commercial Agents and
+    Feed Providers
+  reason: Agent-side capture, update and syndication of portal listing data including media and location
+    — squarely listing data/portal management within brokerage. Chose .30 over vacancy marketing because
+    the surface is listing data feed management for agents.
