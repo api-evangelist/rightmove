@@ -1,0 +1,21 @@
+{
+  "provider": "rightmove",
+  "sources": [
+    "_original/rightmove-commercial-listings-openapi.yml"
+  ],
+  "outputs": [
+    "rightmove-property-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "rightmove-commercial-listings-openapi.yml: upgraded openapi 3.0.1 -> OpenAPI 3.2.0",
+    "rightmove-commercial-listings-openapi.yml: tagged paths GET /v2/property/commercial/branch -> Property",
+    "apis.yml register: already-registered"
+  ],
+  "skipped": [
+    "rightmove-property-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
+}
