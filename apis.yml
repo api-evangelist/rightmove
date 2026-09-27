@@ -55,7 +55,7 @@ accessModel:
   method: derived
 image: https://media.rightmove.co.uk/assets/shared-assets/favicons/light/favicon.ico
 tags:
-- Real-Estate
+- Real Estate
 - United Kingdom
 - Property Listings
 - Property Portal
@@ -72,6 +72,7 @@ tags_raw:
 - Rentals
 - Commercial Real Estate
 - Data Feed
+- Real-Estate
 created: '2026-07-26'
 modified: '2026-07-26'
 specificationVersion: '0.23'
@@ -94,7 +95,7 @@ apis:
   tags:
   - Property Listings
   - Rentals
-  - Real-Estate
+  - Real Estate
   - United Kingdom
   - Data Feed
   tags_raw:
@@ -103,6 +104,7 @@ apis:
   - Real Estate
   - United Kingdom
   - Data Feed
+  - Real-Estate
   properties:
   - type: Documentation
     url: https://www.rightmove.co.uk/adf.html
