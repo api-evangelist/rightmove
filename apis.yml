@@ -74,7 +74,7 @@ tags_raw:
 - Data Feed
 - Real-Estate
 created: '2026-07-26'
-modified: '2026-07-26'
+modified: '2026-10-06'
 specificationVersion: '0.23'
 apis:
 - aid: rightmove:rightmove-real-time-data-feed-api
@@ -148,6 +148,8 @@ apis:
   - type: Support
     url: mailto:adfsupport@rightmove.co.uk
 common:
+- url: https://www.rightmove.co.uk/news/feed/
+  type: BlogRSS
 - type: CapabilityMap
   url: capabilities/rightmove-capability-edges.yml
   name: Rightmove Business Capability Map
